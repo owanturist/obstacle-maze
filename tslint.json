@@ -1,0 +1,81 @@
+{
+  "extends": [
+    "tslint:recommended"
+  ],
+  "defaultSeverity": "error",
+  "rules": {
+
+    // TypeScript specific
+
+    "no-import-side-effect": true,
+    "no-default-import": false,
+    "no-default-export": false,
+    "no-inferrable-types": [ true, "ignore-params", "ignore-properties" ],
+    "no-namespace": false,
+    "no-non-null-assertion": true,
+    "no-parameter-reassignment": true,
+
+    // Functionality
+
+    "ban-comma-operator": true,
+    "no-duplicate-switch-case": true,
+    "no-dynamic-delete": true,
+    "no-for-in-array": true,
+    "no-invalid-template-strings": true,
+    "no-invalid-this": true,
+    "no-object-literal-type-assertion": false,
+    "no-inferred-empty-object-type": true,
+    "no-shadowed-variable": false,
+    "no-sparse-arrays": true,
+    "no-switch-case-fall-through": true,
+    "no-this-assignment": true,
+    "no-unsafe-any": false,
+    "prefer-object-spread": true,
+    "restrict-plus-operands": true,
+    "switch-default": false,
+    "triple-equals": [ true, "allow-null-check" ],
+
+    // Maintainability
+
+    "deprecation": true,
+    "indent": [ true, "spaces", 4 ],
+    "max-classes-per-file": false,
+    "no-duplicate-imports": true,
+    "no-require-imports": true,
+    "object-literal-sort-keys": false,
+    "prefer-readonly": true,
+    "trailing-comma": [
+      true,
+      {
+        "multiline": {
+          "objects": "never",
+          "arrays": "never",
+          "functions": "never",
+          "typeLiterals": "never"
+        }
+      }
+    ],
+
+    // Style
+
+    "array-type": [ true, "generic" ],
+    "arrow-parens": [ true, "ban-single-arg-parens" ],
+    "binary-expression-operand-order": false,
+    "completed-docs": false, // true https://palantir.github.io/tslint/rules/completed-docs/
+    "encoding": true,
+    "file-header": false, // https://palantir.github.io/tslint/rules/file-header/
+    "interface-name": [ true, "never-prefix" ],
+    "no-boolean-literal-compare": true,
+    "no-consecutive-blank-lines": [ true, 2 ],
+    "no-irregular-whitespace": true,
+    "no-unnecessary-callback-wrapper": false,
+    "number-literal-format": true,
+    "ordered-imports": false,
+    "prefer-method-signature": true,
+    "quotemark": [ true, "single", "avoid-template", "jsx-double" ],
+    "return-undefined": false,
+    "space-within-parens": false,
+    "type-literal-delimiter": true,
+    "variable-name": [ true, "check-format", "allow-leading-underscore", "allow-trailing-underscore", "allow-pascal-case" ]
+  }
+}
