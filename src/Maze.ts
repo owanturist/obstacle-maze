@@ -107,7 +107,7 @@ class MazeImpl implements Maze {
             this.colsCount,
             this.rowsCount,
             Just(id),
-            this.target,
+            Just(id).isEqual(this.target) ? Nothing : this.target,
             this.obstacles.remove(id)
         );
     }
@@ -116,7 +116,7 @@ class MazeImpl implements Maze {
         return new MazeImpl(
             this.colsCount,
             this.rowsCount,
-            this.start,
+            Just(id).isEqual(this.start) ? Nothing : this.start,
             Just(id),
             this.obstacles.remove(id)
         );
@@ -195,7 +195,7 @@ const SYMBOL_START = 'o';
 const SYMBOL_TARGET = 'x';
 const SYMBOL_PATH = '.';
 const SYMBOL_WALL = '#';
-const SYMBOL_GRAVEL = '%';
+const SYMBOL_GRAVEL = '|';
 const SYMBOL_PORTAL_IN = '@';
 const SYMBOL_PORTAL_OUT = '*';
 
@@ -232,7 +232,7 @@ const stepToSymbol = (step: Step): string => {
 };
 
 export const serialize = (maze: Maze): string => {
-    const { grid } = maze.fold(
+    const { grid, row } = maze.fold(
         (_id, step, acc: { grid: Array<string>; row: Array<string> }) => {
             if (acc.row.length < maze.cols()) {
                 return {
@@ -249,7 +249,7 @@ export const serialize = (maze: Maze): string => {
         { grid: [], row: [] }
     );
 
-    return grid.join('\n');
+    return grid.join('\n') + '\n' + row.join('');
 };
 
 type Representation = Readonly<{
