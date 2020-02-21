@@ -1,5 +1,5 @@
 import React from 'react';
-import { Program, Worker, Cmd, Sub } from 'frctl/Core';
+import { Program, Worker, Cmd, Sub } from 'frctl';
 
 export type Dispatch<Msg> = (msg: Msg) => void;
 

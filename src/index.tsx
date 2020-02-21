@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Cmd, Sub } from 'frctl/Core';
+import { Cmd, Sub } from 'frctl';
 import Provider from 'Provider';
 import * as App from 'App';
 import * as serviceWorker from './serviceWorker';
