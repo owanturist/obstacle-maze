@@ -54,6 +54,10 @@ export interface Maze {
 
     rows(): number;
 
+    hasStart(): boolean;
+
+    hasTarget(): boolean;
+
     // C O N S T R U C T I O N
 
     setStart(id: ID): Maze;
@@ -88,6 +92,14 @@ class MazeImpl implements Maze {
 
     public rows(): number {
         return this.rowsCount;
+    }
+
+    public hasStart(): boolean {
+        return this.start.isJust();
+    }
+
+    public hasTarget(): boolean {
+        return this.target.isJust();
     }
 
     public setStart(id: ID): Maze {
@@ -179,13 +191,13 @@ export const init = (cols: number, rows: number): Maze => new MazeImpl(
  * J S O N   D E C O D E  /  E N C O D E
  */
 
-const SYMBOL_START = '*';
+const SYMBOL_START = 'o';
 const SYMBOL_TARGET = 'x';
 const SYMBOL_PATH = '.';
 const SYMBOL_WALL = '#';
 const SYMBOL_GRAVEL = '%';
 const SYMBOL_PORTAL_IN = '@';
-const SYMBOL_PORTAL_OUT = '&';
+const SYMBOL_PORTAL_OUT = '*';
 
 const obstacleToSymbol = (obstacle: Obstacle): string => {
     switch (obstacle) {
@@ -256,7 +268,7 @@ export const deserialize = (input: string): Either<string, Maze> => {
     const rows = input.split(/\n/);
 
     if (rows.length < 2) {
-        return Left(`It expects no less than 2 rows but got "${rows}" instead`);
+        return Left(`It expects no less than 2 rows but got "${rows.length}" instead`);
     }
 
     const N = rows[ 0 ].length;
@@ -325,7 +337,7 @@ export const deserialize = (input: string): Either<string, Maze> => {
                 }
 
                 default: {
-                    return Either.Left(`Unknown symbol ${symbol}`);
+                    return Either.Left(`Unknown symbol "${symbol}"`);
                 }
             }
         }),
@@ -340,8 +352,8 @@ export const deserialize = (input: string): Either<string, Maze> => {
         }
 
         return Right(new MazeImpl(
-            rows.length,
             N,
+            rows.length,
             Maybe.fromNullable(start[ 0 ]),
             Maybe.fromNullable(target[ 0 ]),
             obstacles
