@@ -3,10 +3,11 @@ import styled from 'styled-components';
 import { Dispatch } from 'Provider';
 import Set from 'frctl/Set';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
-import RemoteData, { NotAsked } from 'frctl/RemoteData/Optional';
+import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optional';
 
 import Button from 'Button';
 import * as Maze from 'Maze';
+import * as Solver from 'Maze/Solver';
 import * as Utils from 'Utils';
 
 // M O D E L
@@ -69,7 +70,18 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
 
 const Solve = Utils.inst(class Solve implements Msg {
     public update(model: Model): Model {
-        return model;
+        return {
+            ...model,
+            solving: model.maze.setup().cata({
+                Nothing: () => Failure('Please setup both starting and targeting locations'),
+
+                Just: setup => Solver.solve(setup).map(path => {
+                    const cols = model.maze.cols();
+
+                    return Set.fromList(path.map(([ row, col ]) => row * cols + col));
+                }).tap((result): RemoteData<string, Maybe<Set<Maze.ID>>> => Succeed(result))
+            })
+        };
     }
 });
 
