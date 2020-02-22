@@ -1,66 +1,50 @@
 import React from 'react';
 import { Dispatch } from 'Provider';
-import * as Counter from 'Counter';
+import * as Grid from 'Grid';
 import * as Utils from 'Utils';
 
 
 // M O D E L
 
 export interface Model {
-    firstCounter: Counter.Model;
-    secondCounter: Counter.Model;
+    grid: Grid.Model;
 }
 
 export const initial: Model = {
-    firstCounter: Counter.initial,
-    secondCounter: Counter.initial
+    grid: Grid.initial(25, 25)
 };
 
 // U P D A T E
 
 export interface Msg extends Utils.Msg<[ Model ], Model> {}
 
-const FirstCounterMsg = Utils.cons(class implements Msg {
-    public constructor(private readonly msg: Counter.Msg) {}
+const GridMsg = Utils.cons(class GridMsg implements Msg {
+    public constructor(private readonly msg: Grid.Msg) {}
 
     public update(model: Model): Model {
         return {
             ...model,
-            firstCounter: this.msg.update(model.firstCounter)
-        };
-    }
-});
-
-const SecondCounterMsg = Utils.cons(class implements Msg {
-    public constructor(private readonly msg: Counter.Msg) {}
-
-    public update(model: Model): Model {
-        return {
-            ...model,
-            secondCounter: this.msg.update(model.secondCounter)
+            grid: this.msg.update(model.grid)
         };
     }
 });
 
 // V I E W
 
-export const View: React.FC<{
+export class View extends React.PureComponent<{
     model: Model;
     dispatch: Dispatch<Msg>;
-}> = ({ model, dispatch }) => (
-    <div>
-        <h2>Left Counter</h2>
+}> {
+    private readonly gridDispatch = (msg: Grid.Msg) => {
+        this.props.dispatch(GridMsg(msg));
+    }
 
-        <Counter.View
-            model={model.firstCounter}
-            dispatch={msg => dispatch(FirstCounterMsg(msg))}
-        />
-
-        <h2>Right Counter</h2>
-
-        <Counter.View
-            model={model.secondCounter}
-            dispatch={msg => dispatch(SecondCounterMsg(msg))}
-        />
-    </div>
-);
+    public render() {
+        return (
+            <Grid.View
+                model={this.props.model.grid}
+                dispatch={this.gridDispatch}
+            />
+        );
+    }
+}

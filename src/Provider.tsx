@@ -4,7 +4,7 @@ import { Program, Worker, Cmd, Sub } from 'frctl';
 export type Dispatch<Msg> = (msg: Msg) => void;
 
 export interface Props<Model, Msg> {
-    view: React.FC<{
+    view: React.ComponentType<{
         model: Model;
         dispatch: Dispatch<Msg>;
     }>;

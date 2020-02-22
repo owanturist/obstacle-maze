@@ -9,9 +9,9 @@ export interface Model {
     count: number;
 }
 
-export const initial: Model = {
-    count: 0
-};
+export const initial = (count: number): Model => ({
+    count
+});
 
 // U P D A T E
 

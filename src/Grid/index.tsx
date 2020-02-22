@@ -133,6 +133,13 @@ const EditCell = Utils.cons(class EditCell implements Msg {
                     };
                 }
 
+                case Editing.Remove: {
+                    return {
+                        ...model,
+                        maze: model.maze.remove(this.id)
+                    };
+                }
+
                 default: {
                     return model;
                 }

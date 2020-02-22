@@ -29,8 +29,6 @@ serviceWorker.unregister();
 
 const searchPathInstance = createSearchPathWorker<typeof SearchPathWorker>();
 
-searchPathInstance.searchPath(1e10);
-
 searchPathInstance.addEventListener('message', event => {
     // tslint:disable-next-line:no-console
     console.log('msg', event.data);
