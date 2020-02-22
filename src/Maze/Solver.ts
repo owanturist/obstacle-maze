@@ -11,6 +11,11 @@ import {
     ID
 } from './index';
 
+
+const NORAML_DURATION = 1;
+const GRAVEL_DURATION = NORAML_DURATION * 2;
+
+
 interface PriorityQueue<T extends Comparable<T>> {
     enqueue(item: T): void;
 
@@ -19,10 +24,10 @@ interface PriorityQueue<T extends Comparable<T>> {
     isEmpty(): boolean;
 }
 
-interface Stack<T> {
-    push(item: T): Stack<T>;
+interface NonEmptyStack<T> {
+    push(item: T): NonEmptyStack<T>;
 
-    pop(): Maybe<T>;
+    peek(): T;
 
     toList(): Array<T>;
 }
@@ -32,7 +37,7 @@ export type Path = Array<ID>;
 class Way implements Comparable<Way> {
     public constructor(
         private readonly time: number,
-        private readonly path: Stack<ID>
+        private readonly path: NonEmptyStack<ID>
     ) {}
 
     public compareTo(another: Way): Order {
@@ -46,6 +51,14 @@ class Way implements Comparable<Way> {
 
         return Order.EQ;
     }
+
+    public last(): ID {
+        return this.path.peek();
+    }
+
+    public step(duration: number, id: ID): Way {
+        return new Way(this.time + duration, this.path.push(id));
+    }
 }
 
 class BFS {
@@ -57,10 +70,10 @@ class BFS {
         private readonly rows: number,
         private readonly start: ID,
         private readonly target: ID,
-        private readonly obstacle: Dict<ID, Obstacle>
+        private readonly obstacles: Array<null | Obstacle>
     ) {}
 
-    private schedule(col: number, row: number): void {
+    private schedule(way: Way, col: number, row: number): void {
         if (col < 0 || col >= this.cols - 1 || row < 0 || row >= this.rows - 1) {
             return;
         }
@@ -72,23 +85,24 @@ class BFS {
         }
     }
 
-    private lookup(id: ID): void {
+    private lookup(way: Way): void {
+        const id = way.last();
         const col = id % this.cols;
         const row = Math.floor(id / this.cols);
 
         // a circle lookup from top-left clockwise, just for fun
-        this.schedule(col - 1, row - 1);  // top-left
-        this.schedule(col, row - 1);      // top
-        this.schedule(col + 1, row - 1);  // top-right
-        this.schedule(col + 1, row);      // right
-        this.schedule(col + 1, row + 1);  // bottom-right
-        this.schedule(col, row + 1);      // bottom
-        this.schedule(col - 1, row + 1);  // bottom-left
-        this.schedule(col - 1, row);      // left
+        this.schedule(way, col - 1, row - 1);  // top-left
+        this.schedule(way, col,     row - 1);  // top
+        this.schedule(way, col + 1, row - 1);  // top-right
+        this.schedule(way, col + 1, row    );  // right
+        this.schedule(way, col + 1, row + 1);  // bottom-right
+        this.schedule(way, col,     row + 1);  // bottom
+        this.schedule(way, col - 1, row + 1);  // bottom-left
+        this.schedule(way, col - 1, row    );  // left
     }
 
     public findShortestPaths(): Array<Path> {
-        this.lookup(this.start);
+        // this.lookup(this.start);
 
         return [];
     }
@@ -98,7 +112,13 @@ class BFS {
  * We trust the Maze flow so `setup` is valid.
  */
 export const solve = (setup: Setup): Array<Path> => {
-    const bfs = new BFS(setup.cols, setup.rows, setup.start, setup.target, setup.obstacles);
+    const bfs = new BFS(
+        setup.cols,
+        setup.rows,
+        setup.start,
+        setup.target,
+        setup.obstacles
+    );
 
     return bfs.findShortestPaths();
 };

@@ -1,7 +1,6 @@
 import * as Maze from './index';
 import Maybe from 'frctl/Maybe';
 import Either from 'frctl/Either';
-import Dict from 'frctl/Dict';
 
 describe('Maze.deserialize()', () => {
     it('Invalid', () => {
@@ -78,13 +77,13 @@ o..
         expect(config.map(({ start }) => start)).toEqual(Maybe.Just(86));
         expect(config.map(({ target }) => target)).toEqual(Maybe.Just(50));
 
-        const obstacles = config.map(({ obstacles }) => obstacles).getOrElse(Dict.empty as Dict<number, Maze.Obstacle>);
+        const obstacles = config.map(({ obstacles }) => obstacles).getOrElse([]);
 
-        expect(obstacles.get(0)).toEqual(Maybe.Nothing);
-        expect(obstacles.get(8)).toEqual(Maybe.Just(Maze.Obstacle.Wall));
-        expect(obstacles.get(13)).toEqual(Maybe.Just(Maze.Obstacle.Gravel));
-        expect(obstacles.get(32)).toEqual(Maybe.Just(Maze.Obstacle.PortalOut));
-        expect(obstacles.get(143)).toEqual(Maybe.Just(Maze.Obstacle.PortalIn));
+        expect(obstacles[ 0 ][ 0 ]).toBeUndefined();
+        expect(obstacles[ 0 ][ 8 ]).toBe(Maze.Obstacle.Wall);
+        expect(obstacles[ 0 ][ 13 ]).toBe(Maze.Obstacle.Gravel);
+        expect(obstacles[ 1 ][ 12 ]).toBe(Maze.Obstacle.PortalOut);
+        expect(obstacles[ 7 ][ 3 ]).toBe(Maze.Obstacle.PortalIn);
     });
 });
 

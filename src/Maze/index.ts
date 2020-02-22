@@ -27,11 +27,9 @@ export enum Obstacle
  * Represents minimum available Maze configuration for solving.
  */
 export type Setup = Readonly<{
-    cols: number;
-    rows: number;
     start: ID;
     target: ID;
-    obstacles: Dict<ID, Obstacle>;
+    obstacles: Array<Array<Obstacle>>;
 }>;
 
 /**
@@ -168,10 +166,24 @@ class MazeImpl implements Maze {
     public setup(): Maybe<Setup> {
         return Maybe.shape({
             start: this.start,
-            target: this.target,
-            cols: Just(this.colsCount),
-            rows: Just(this.rowsCount),
-            obstacles: Just(this.obstacles)
+            target: this.target
+        }).map(({ start, target }) => {
+            const obstacles: Array<Array<Obstacle>> = new Array(this.rowsCount);
+
+            for (let i = 0; i < this.rowsCount; i++) {
+                obstacles[ i ] = new Array(this.colsCount);
+            }
+
+            const listOfObstacles = this.obstacles.entries();
+
+            for (const [ index, obstacle ] of listOfObstacles) {
+                const col = index % this.colsCount;
+                const row = Math.floor(index / this.colsCount);
+
+                obstacles[ row ][ col ] = obstacle;
+            }
+
+            return { start, target, obstacles };
         });
     }
 }
