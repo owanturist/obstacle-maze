@@ -9,11 +9,8 @@ import Dict from 'frctl/Dict';
 export type ID = number;
 
 /**
- * Represents Cell types in Maze.
+ * Represents obstacles in Maze.
  *
- * Start - starting location of a solver.
- * Target - target location of a slover.
- * Path - regular walking cell.
  * Wall - impossible to travel thru obstacle.
  * Gravel - obstacles reduces walking speed twice.
  * PortalIn - portal entrance allows solver to instantly go out from PortalOut.
@@ -170,10 +167,10 @@ class MazeImpl implements Maze {
 
     public toConfig(): Maybe<Config> {
         return Maybe.shape({
-            cols: Just(this.colsCount),
-            rows: Just(this.rowsCount),
             start: this.start,
             target: this.target,
+            cols: Just(this.colsCount),
+            rows: Just(this.rowsCount),
             obstacles: Just(this.obstacles)
         });
     }
@@ -188,7 +185,7 @@ export const init = (cols: number, rows: number): Maze => new MazeImpl(
 );
 
 /**
- * J S O N   D E C O D E  /  E N C O D E
+ * D E C O D E  /  E N C O D E
  */
 
 const SYMBOL_START = 'o';
@@ -264,6 +261,60 @@ const initialRepresentation: Representation = {
     obstacles: Dict.empty as Dict<ID, Obstacle>
 };
 
+const processRepresentation = (id: ID, symbol: string, acc: Representation): Either<string, Representation> => {
+    switch (symbol) {
+        case SYMBOL_START: {
+            return Right({
+                ...acc,
+                start: [ ...acc.start, id ]
+            });
+        }
+
+        case SYMBOL_TARGET: {
+            return Right({
+                ...acc,
+                target: [ ...acc.target, id ]
+            });
+        }
+
+        case SYMBOL_PATH: {
+            return Right(acc);
+        }
+
+        case SYMBOL_WALL: {
+            return Right({
+                ...acc,
+                obstacles: acc.obstacles.insert(id, Obstacle.Wall)
+            });
+        }
+
+        case SYMBOL_GRAVEL: {
+            return Right({
+                ...acc,
+                obstacles: acc.obstacles.insert(id, Obstacle.Gravel)
+            });
+        }
+
+        case SYMBOL_PORTAL_IN: {
+            return Right({
+                ...acc,
+                obstacles: acc.obstacles.insert(id, Obstacle.PortalIn)
+            });
+        }
+
+        case SYMBOL_PORTAL_OUT: {
+            return Right({
+                ...acc,
+                obstacles: acc.obstacles.insert(id, Obstacle.PortalOut)
+            });
+        }
+
+        default: {
+            return Either.Left(`Unknown symbol "${symbol}"`);
+        }
+    }
+};
+
 export const deserialize = (input: string): Either<string, Maze> => {
     const rows = input.split(/\n/);
 
@@ -288,59 +339,9 @@ export const deserialize = (input: string): Either<string, Maze> => {
     }
 
     return symbols.reduce(
-        (acc: Either<string, Representation>, symbol, id: ID) => acc.chain(representation => {
-            switch (symbol) {
-                case SYMBOL_START: {
-                    return Right({
-                        ...representation,
-                        start: [ ...representation.start, id ]
-                    });
-                }
-
-                case SYMBOL_TARGET: {
-                    return Right({
-                        ...representation,
-                        target: [ ...representation.target, id ]
-                    });
-                }
-
-                case SYMBOL_PATH: {
-                    return Right(representation);
-                }
-
-                case SYMBOL_WALL: {
-                    return Right({
-                        ...representation,
-                        obstacles: representation.obstacles.insert(id, Obstacle.Wall)
-                    });
-                }
-
-                case SYMBOL_GRAVEL: {
-                    return Right({
-                        ...representation,
-                        obstacles: representation.obstacles.insert(id, Obstacle.Gravel)
-                    });
-                }
-
-                case SYMBOL_PORTAL_IN: {
-                    return Right({
-                        ...representation,
-                        obstacles: representation.obstacles.insert(id, Obstacle.PortalIn)
-                    });
-                }
-
-                case SYMBOL_PORTAL_OUT: {
-                    return Right({
-                        ...representation,
-                        obstacles: representation.obstacles.insert(id, Obstacle.PortalOut)
-                    });
-                }
-
-                default: {
-                    return Either.Left(`Unknown symbol "${symbol}"`);
-                }
-            }
-        }),
+        (acc: Either<string, Representation>, symbol, id: ID) => {
+            return acc.chain(representation => processRepresentation(id, symbol, representation));
+        },
         Right(initialRepresentation)
     ).chain(({ start, target, obstacles }) => {
         if (start.length > 1) {
