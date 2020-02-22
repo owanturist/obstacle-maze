@@ -138,7 +138,7 @@ class MazeImpl implements Maze {
     }
 
     public clear(): Maze {
-        return init(this.colsCount, this.rowsCount);
+        return init(this.rowsCount, this.colsCount);
     }
 
     public fold<R>(fn: (id: ID, step: Step, acc: R) => R, acc: R): R {

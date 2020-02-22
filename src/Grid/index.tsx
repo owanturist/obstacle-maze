@@ -63,7 +63,8 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            maze: model.maze.clear()
+            maze: model.maze.clear(),
+            solving: NotAsked
         };
     }
 });
@@ -241,7 +242,7 @@ const StyledGrid = styled.div<StyledGridProps>`
     max-width: 100%;
 
     ${StyledCell} {
-        flex: 1 1 ${props => Math.floor(100 / props.cols)}%;
+        flex: 1 1 ${props => 100 / props.cols}%;
     }
 `;
 
