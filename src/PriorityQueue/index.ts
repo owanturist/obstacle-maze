@@ -48,6 +48,10 @@ class PriorityQueueImpl<T extends Comparable<T>> implements PriorityQueue<T> {
         const item = this.heap[ 1 ];
         const last = this.heap.pop();
 
+        if (this.isEmpty()) {
+            return item;
+        }
+
         this.heap[ 1 ] = last as T;
         this.sink(1);
 
@@ -91,4 +95,4 @@ class PriorityQueueImpl<T extends Comparable<T>> implements PriorityQueue<T> {
     }
 }
 
-export const empty: PriorityQueue<never> = new PriorityQueueImpl();
+export const empty = <T extends Comparable<T>>(): PriorityQueue<T> => new PriorityQueueImpl();

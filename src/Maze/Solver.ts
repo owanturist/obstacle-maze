@@ -11,19 +11,14 @@ import {
     NonEmptyStack,
     init as initNonEmptyStack
 } from '../NonEmptyStack';
-
+import {
+    PriorityQueue,
+    empty as emptyPriorityQueue
+} from '../PriorityQueue';
 
 const NORAML_DURATION = 1;
 const GRAVEL_DURATION = NORAML_DURATION * 2;
 
-
-interface PriorityQueue<T extends Comparable<T>> {
-    enqueue(item: T): void;
-
-    dequeue(): T;
-
-    isEmpty(): boolean;
-}
 
 export type Path = Array<[ number, number ]>;
 
@@ -76,7 +71,7 @@ class BFS {
     private readonly cols: number;
     private readonly visited: Array<boolean>;
     private readonly portalsOut: Array<[ number, number ]>;
-    private readonly pq: PriorityQueue<Way>;
+    private readonly pq: PriorityQueue<Way> = emptyPriorityQueue();
 
     public constructor(
         private readonly start: [ number, number ],
