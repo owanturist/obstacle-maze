@@ -1,8 +1,11 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Dispatch } from 'Provider';
+import Set from 'frctl/Set';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
+import RemoteData, { NotAsked } from 'frctl/RemoteData/Optional';
 
+import Button from 'Button';
 import * as Maze from 'Maze';
 import * as Utils from 'Utils';
 
@@ -22,11 +25,13 @@ export enum Editing {
 export type Model = Readonly<{
     editing: Maybe<Editing>;
     maze: Maze.Maze;
+    solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
 }>;
 
 export const initial = (rows: number, cols: number): Model => ({
     editing: Nothing,
-    maze: Maze.init(rows, cols)
+    maze: Maze.init(rows, cols),
+    solving: NotAsked
 });
 
 // U P D A T E
@@ -59,6 +64,12 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
             ...model,
             maze: model.maze.clear()
         };
+    }
+});
+
+const Solve = Utils.inst(class Solve implements Msg {
+    public update(model: Model): Model {
+        return model;
     }
 });
 
@@ -131,6 +142,7 @@ enum Color {
 }
 
 interface StyledCellProps {
+    inPath: boolean;
     background: Color;
 }
 
@@ -145,6 +157,7 @@ const StyledCell = styled.div<StyledCellProps>`
         display: block;
         padding-top: 100%;
         background: ${props => props.background};
+        box-shadow: ${props => props.inPath && '0 0 2px 2px #9b59b6 inset'};
     }
 
     &:hover:before {
@@ -154,6 +167,7 @@ const StyledCell = styled.div<StyledCellProps>`
 
 class ViewCell extends React.PureComponent<{
     id: Maze.ID;
+    inPath: boolean;
     editing: Maybe<Editing>;
     step: Maze.Step;
     dispatch: Dispatch<Msg>;
@@ -187,6 +201,7 @@ class ViewCell extends React.PureComponent<{
     public render() {
         return (
             <StyledCell
+                inPath={this.props.inPath}
                 background={this.getBackground()}
                 onClick={this.onClick}
             />
@@ -210,6 +225,36 @@ const StyledGrid = styled.div<StyledGridProps>`
         flex: 1 1 ${props => Math.floor(100 / props.cols)}%;
     }
 `;
+
+class ViewGrid extends React.PureComponent<{
+    editing: Maybe<Editing>;
+    maze: Maze.Maze;
+    path: Set<Maze.ID>;
+    dispatch: Dispatch<Msg>;
+}> {
+    public render() {
+        const { editing, maze, path, dispatch } = this.props;
+
+        return (
+            <StyledGrid cols={maze.cols()}>
+                {maze.fold((id, step, acc: Array<JSX.Element>) => {
+                    acc.push(
+                        <ViewCell
+                            key={id}
+                            editing={editing}
+                            id={id}
+                            inPath={path.member(id)}
+                            step={step}
+                            dispatch={dispatch}
+                        />
+                    );
+
+                    return acc;
+                }, [])}
+            </StyledGrid>
+        );
+    }
+}
 
 const StyledToolbar = styled.div`
     display: flex;
@@ -281,15 +326,15 @@ const TOOLS = [
 ];
 
 const ViewToolbar: React.FC<{
-    model: Model;
+    editing: Maybe<Editing>;
     dispatch: Dispatch<Msg>;
-}> = ({ model, dispatch }) => (
+}> = ({ editing, dispatch }) => (
     <StyledToolbar>
         {TOOLS.map(tool => (
             <ViewTool
                 key={tool}
                 tool={tool}
-                editing={model.editing}
+                editing={editing}
                 dispatch={dispatch}
             />
         ))}
@@ -302,6 +347,10 @@ const ViewToolbar: React.FC<{
     </StyledToolbar>
 );
 
+const StyledError = styled.div`
+    color: #c0392b;
+`;
+
 const StyledRoot = styled.div``;
 
 export const View: React.FC<{
@@ -310,26 +359,35 @@ export const View: React.FC<{
 }> = ({ model, dispatch }) => (
     <StyledRoot>
         <ViewToolbar
-            model={model}
+            editing={model.editing}
             dispatch={dispatch}
         />
 
-        <StyledGrid
-            cols={model.maze.cols()}
-        >
-            {model.maze.fold((id, step, acc: Array<JSX.Element>) => {
-                acc.push(
-                    <ViewCell
-                        key={id}
-                        editing={model.editing}
-                        id={id}
-                        step={step}
-                        dispatch={dispatch}
-                    />
-                );
+        <ViewGrid
+            editing={model.editing}
+            maze={model.maze}
+            path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
+            dispatch={dispatch}
+        />
 
-                return acc;
-            }, [])}
-        </StyledGrid>
+        {model.solving.cata({
+            Failure: error => (
+                <StyledError>{error}</StyledError>
+            ),
+
+            Succeed: result => result.isNothing() && (
+                <StyledError>No Path</StyledError>
+            ),
+
+            _: () => null
+        })}
+
+        <Button
+            block
+            disabled={model.solving.isLoading()}
+            onClick={() => dispatch(Solve)}
+        >
+            Solve
+        </Button>
     </StyledRoot>
 );

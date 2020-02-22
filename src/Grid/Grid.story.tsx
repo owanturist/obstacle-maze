@@ -1,7 +1,9 @@
 import React from 'react';
 import { action } from '@storybook/addon-actions';
 import * as Knobs from '@storybook/addon-knobs';
+import Set from 'frctl/Set';
 import Maybe from 'frctl/Maybe';
+import RemoteData from 'frctl/RemoteData/Optional';
 
 import * as Grid from './index';
 import { Obstacle } from 'Maze';
@@ -84,3 +86,67 @@ export const ActiveTool = () => {
         />
     );
 };
+
+export const Solving = () => {
+    const initialModel = Grid.initial(20, 20);
+    const model = {
+        ...initialModel,
+        solving: Knobs.boolean('Loading', true) ? RemoteData.Loading : RemoteData.NotAsked
+    };
+
+    return (
+        <Grid.View
+            model={model}
+            dispatch={action('Dispatch')}
+        />
+    );
+};
+
+export const Failure = () => {
+    const initialModel = Grid.initial(20, 20);
+    const model = {
+        ...initialModel,
+        solving: RemoteData.Failure(Knobs.text('Loading', 'The Maze does not have start and target locations'))
+    };
+
+    return (
+        <Grid.View
+            model={model}
+            dispatch={action('Dispatch')}
+        />
+    );
+};
+
+export const NoPath = () => {
+    const initialModel = Grid.initial(20, 20);
+    const model = {
+        ...initialModel,
+        solving: RemoteData.Succeed(Maybe.Nothing)
+    };
+
+    return (
+        <Grid.View
+            model={model}
+            dispatch={action('Dispatch')}
+        />
+    );
+};
+
+
+export const FoundPath = () => {
+    const initialModel = Grid.initial(20, 20);
+    const path = Knobs.array('Path', [ '21', '22', '23', '43' ], ' ').filter(Boolean).map(Number);
+
+    const model = {
+        ...initialModel,
+        solving: RemoteData.Succeed(path.length ? Maybe.Just(Set.fromList(path)) : Maybe.Nothing)
+    };
+
+    return (
+        <Grid.View
+            model={model}
+            dispatch={action('Dispatch')}
+        />
+    );
+};
+
