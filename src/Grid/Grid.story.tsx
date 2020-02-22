@@ -23,31 +23,28 @@ export const WithObstacles = () => {
         ...initialModel,
         maze: initialModel.maze
             .setStart(0)
-            .setTarget(4)
 
-            .setObstacle(20, Obstacle.Wall)
             .setObstacle(21, Obstacle.Wall)
             .setObstacle(22, Obstacle.Wall)
             .setObstacle(23, Obstacle.Wall)
             .setObstacle(24, Obstacle.Wall)
 
-            .setObstacle(40, Obstacle.Gravel)
             .setObstacle(41, Obstacle.Gravel)
             .setObstacle(42, Obstacle.Gravel)
             .setObstacle(43, Obstacle.Gravel)
             .setObstacle(44, Obstacle.Gravel)
 
-            .setObstacle(60, Obstacle.PortalIn)
             .setObstacle(61, Obstacle.PortalIn)
             .setObstacle(62, Obstacle.PortalIn)
             .setObstacle(63, Obstacle.PortalIn)
             .setObstacle(64, Obstacle.PortalIn)
 
-            .setObstacle(80, Obstacle.PortalOut)
             .setObstacle(81, Obstacle.PortalOut)
             .setObstacle(82, Obstacle.PortalOut)
             .setObstacle(83, Obstacle.PortalOut)
             .setObstacle(84, Obstacle.PortalOut)
+
+            .setTarget(105)
     };
 
     return (
@@ -57,3 +54,11 @@ export const WithObstacles = () => {
         />
     );
 };
+
+
+export const ActiveTool = () => (
+    <Grid.View
+        model={Grid.initial(20, 20)}
+        dispatch={action('Dispatch')}
+    />
+);
