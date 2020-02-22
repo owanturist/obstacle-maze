@@ -1,14 +1,15 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Dispatch } from 'Provider';
+import Maybe, { Nothing, Just } from 'frctl/Maybe';
 
 import * as Maze from 'Maze';
 import * as Utils from 'Utils';
 
 // M O D E L
 
+// Storybook needs only string as values for radio...
 export enum Editing {
-    NoEditing = 'no_editing',
     SetStart = 'set_start',
     SetTarget = 'set_target',
     AddWall = 'add_wall',
@@ -19,18 +20,47 @@ export enum Editing {
 }
 
 export type Model = Readonly<{
-    editing: Editing;
+    editing: Maybe<Editing>;
     maze: Maze.Maze;
 }>;
 
 export const initial = (rows: number, cols: number): Model => ({
-    editing: Editing.NoEditing,
+    editing: Nothing,
     maze: Maze.init(rows, cols)
 });
 
 // U P D A T E
 
 export interface Msg extends Utils.Msg<[ Model ], Model> {}
+
+const SetEditing = Utils.cons(class SetEditing implements Msg {
+    public constructor(private readonly editing: Editing) {}
+
+    public update(model: Model): Model {
+        return {
+            ...model,
+            editing: Just(this.editing)
+        };
+    }
+});
+
+const ResetEditing = Utils.inst(class ResetEditing implements Msg {
+    public update(model: Model): Model {
+        return {
+            ...model,
+            editing: Nothing
+        };
+    }
+});
+
+const ClearMaze = Utils.inst(class ClearMaze implements Msg {
+    public update(model: Model): Model {
+        return {
+            ...model,
+            maze: model.maze.clear()
+        };
+    }
+});
 
 // V I E W
 
@@ -139,56 +169,72 @@ const StyledTool = styled.div<StyledToolProps>`
     cursor: pointer;
 `;
 
+class ViewTool extends React.PureComponent<{
+    tool: Editing;
+    editing: Maybe<Editing>;
+    dispatch: Dispatch<Msg>;
+}> {
+    private getBackground(): Color {
+        switch (this.props.tool) {
+            case Editing.SetStart: return Color.Start;
+            case Editing.SetTarget: return Color.Target;
+            case Editing.AddWall: return Color.Wall;
+            case Editing.AddGravel: return Color.Gravel;
+            case Editing.AddPortalIn: return Color.PortalIn;
+            case Editing.AddPortalOut: return Color.PortalOut;
+            default: return Color.Default;
+        }
+    }
+
+    private isActive(): boolean {
+        return Just(this.props.tool).isEqual(this.props.editing);
+    }
+
+    private onClick = () => {
+        this.props.dispatch(
+            this.isActive() ? ResetEditing : SetEditing(this.props.tool)
+        );
+    }
+
+    public render() {
+        return (
+            <StyledTool
+                active={this.isActive()}
+                background={this.getBackground()}
+                onClick={this.onClick}
+            />
+        );
+    }
+}
+
+const TOOLS = [
+    Editing.SetStart,
+    Editing.SetTarget,
+    Editing.AddWall,
+    Editing.AddGravel,
+    Editing.AddPortalIn,
+    Editing.AddPortalOut,
+    Editing.Remove
+];
+
 const ViewToolbar: React.FC<{
     model: Model;
     dispatch: Dispatch<Msg>;
 }> = ({ model, dispatch }) => (
     <StyledToolbar>
-        <StyledTool
-            title="Set start location"
-            active={model.editing === Editing.SetStart}
-            background={Color.Start}
-        />
-
-        <StyledTool
-            title="Set target location"
-            active={model.editing === Editing.SetTarget}
-            background={Color.Target}
-        />
-
-        <StyledTool
-            title="Add boulder"
-            active={model.editing === Editing.AddWall}
-            background={Color.Wall}
-        />
-
-        <StyledTool
-            title="Add gravel"
-            active={model.editing === Editing.AddGravel}
-            background={Color.Gravel}
-        />
-
-        <StyledTool
-            title="Add wormhole entrance"
-            active={model.editing === Editing.AddPortalIn}
-            background={Color.PortalIn}
-        />
-
-        <StyledTool
-            title="Add wormhole exit"
-            active={model.editing === Editing.AddPortalOut}
-            background={Color.PortalOut}
-        />
-
-        <StyledTool
-            title="Clear cell"
-            active={model.editing === Editing.Remove}
-            background={Color.Default}
-        />
+        {TOOLS.map(tool => (
+            <ViewTool
+                key={tool}
+                tool={tool}
+                editing={model.editing}
+                dispatch={dispatch}
+            />
+        ))}
 
         <StyledTool
             title="Remove all"
             background={Color.Default}
+            onClick={() => dispatch(ClearMaze)}
         />
     </StyledToolbar>
 );

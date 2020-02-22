@@ -1,6 +1,8 @@
 import React from 'react';
 import { action } from '@storybook/addon-actions';
 import * as Knobs from '@storybook/addon-knobs';
+import Maybe from 'frctl/Maybe';
+
 import * as Grid from './index';
 import { Obstacle } from 'Maze';
 
@@ -66,14 +68,13 @@ export const ActiveTool = () => {
         'Add Gravel': Grid.Editing.AddGravel,
         'Add Portal In': Grid.Editing.AddPortalIn,
         'Add Portal Out': Grid.Editing.AddPortalOut,
-        'Remove': Grid.Editing.Remove,
-        'No Editing': Grid.Editing.NoEditing
+        'Remove': Grid.Editing.Remove
     }, Grid.Editing.SetStart);
 
     const initialModel = Grid.initial(20, 20);
     const model = {
         ...initialModel,
-        editing
+        editing: Maybe.Just(editing)
     };
 
     return (
