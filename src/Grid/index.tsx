@@ -62,6 +62,62 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
     }
 });
 
+const EditCell = Utils.cons(class EditCell implements Msg {
+    public constructor(private readonly id: Maze.ID) {}
+
+    public update(model: Model): Model {
+        return model.editing.map(editing => {
+            switch (editing) {
+                case Editing.SetStart: {
+                    return {
+                        ...model,
+                        maze: model.maze.setStart(this.id)
+                    };
+                }
+
+                case Editing.SetTarget: {
+                    return {
+                        ...model,
+                        maze: model.maze.setTarget(this.id)
+                    };
+                }
+
+                case Editing.AddWall: {
+                    return {
+                        ...model,
+                        maze: model.maze.setObstacle(this.id, Maze.Obstacle.Wall)
+                    };
+                }
+
+                case Editing.AddGravel: {
+                    return {
+                        ...model,
+                        maze: model.maze.setObstacle(this.id, Maze.Obstacle.Gravel)
+                    };
+                }
+
+                case Editing.AddPortalIn: {
+                    return {
+                        ...model,
+                        maze: model.maze.setObstacle(this.id, Maze.Obstacle.PortalIn)
+                    };
+                }
+
+                case Editing.AddPortalOut: {
+                    return {
+                        ...model,
+                        maze: model.maze.setObstacle(this.id, Maze.Obstacle.PortalOut)
+                    };
+                }
+
+                default: {
+                    return model;
+                }
+            }
+        }).getOrElse(model);
+    }
+});
+
 // V I E W
 
 enum Color {
@@ -97,6 +153,8 @@ const StyledCell = styled.div<StyledCellProps>`
 `;
 
 class ViewCell extends React.PureComponent<{
+    id: Maze.ID;
+    editing: Maybe<Editing>;
     step: Maze.Step;
     dispatch: Dispatch<Msg>;
 }> {
@@ -120,13 +178,18 @@ class ViewCell extends React.PureComponent<{
         }).getOrElse(Color.Default);
     }
 
+    private readonly onClick = () => {
+        if (this.props.editing.isJust()) {
+            this.props.dispatch(EditCell(this.props.id));
+        }
+    }
+
     public render() {
         return (
             <StyledCell
                 background={this.getBackground()}
-            >
-
-            </StyledCell>
+                onClick={this.onClick}
+            />
         );
     }
 }
@@ -190,7 +253,7 @@ class ViewTool extends React.PureComponent<{
         return Just(this.props.tool).isEqual(this.props.editing);
     }
 
-    private onClick = () => {
+    private readonly onClick = () => {
         this.props.dispatch(
             this.isActive() ? ResetEditing : SetEditing(this.props.tool)
         );
@@ -258,6 +321,8 @@ export const View: React.FC<{
                 acc.push(
                     <ViewCell
                         key={id}
+                        editing={model.editing}
+                        id={id}
                         step={step}
                         dispatch={dispatch}
                     />
