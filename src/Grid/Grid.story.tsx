@@ -1,5 +1,6 @@
 import React from 'react';
 import { action } from '@storybook/addon-actions';
+import * as Knobs from '@storybook/addon-knobs';
 import * as Grid from './index';
 import { Obstacle } from 'Maze';
 
@@ -7,7 +8,8 @@ export default {
     title: 'Grid',
     parameters: {
         component: Grid.View
-    }
+    },
+    decorators: [ Knobs.withKnobs ]
 };
 
 export const Initial = () => (
@@ -56,9 +58,28 @@ export const WithObstacles = () => {
 };
 
 
-export const ActiveTool = () => (
-    <Grid.View
-        model={Grid.initial(20, 20)}
-        dispatch={action('Dispatch')}
-    />
-);
+export const ActiveTool = () => {
+    const editing = Knobs.radios('Editing', {
+        'Set Start': Grid.Editing.SetStart,
+        'Set Target': Grid.Editing.SetTarget,
+        'Add Wall': Grid.Editing.AddWall,
+        'Add Gravel': Grid.Editing.AddGravel,
+        'Add Portal In': Grid.Editing.AddPortalIn,
+        'Add Portal Out': Grid.Editing.AddPortalOut,
+        'Remove': Grid.Editing.Remove,
+        'No Editing': Grid.Editing.NoEditing
+    }, Grid.Editing.SetStart);
+
+    const initialModel = Grid.initial(20, 20);
+    const model = {
+        ...initialModel,
+        editing
+    };
+
+    return (
+        <Grid.View
+            model={model}
+            dispatch={action('Dispatch')}
+        />
+    );
+};

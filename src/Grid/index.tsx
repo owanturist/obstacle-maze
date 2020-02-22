@@ -7,11 +7,24 @@ import * as Utils from 'Utils';
 
 // M O D E L
 
+export enum Editing {
+    NoEditing = 'no_editing',
+    SetStart = 'set_start',
+    SetTarget = 'set_target',
+    AddWall = 'add_wall',
+    AddGravel = 'add_gravel',
+    AddPortalIn = 'add_portal_in',
+    AddPortalOut = 'add_portal_out',
+    Remove = 'remove'
+}
+
 export type Model = Readonly<{
+    editing: Editing;
     maze: Maze.Maze;
 }>;
 
 export const initial = (rows: number, cols: number): Model => ({
+    editing: Editing.NoEditing,
     maze: Maze.init(rows, cols)
 });
 
@@ -122,7 +135,7 @@ const StyledTool = styled.div<StyledToolProps>`
     width: 48px;
     height: 48px;
     background: ${props => props.background};
-    opacity: ${props => props.active && 0.5};
+    box-shadow: ${props => props.active && '0 0 0 4px #7f8c8d inset'};
     cursor: pointer;
 `;
 
@@ -133,36 +146,43 @@ const ViewToolbar: React.FC<{
     <StyledToolbar>
         <StyledTool
             title="Set start location"
+            active={model.editing === Editing.SetStart}
             background={Color.Start}
         />
 
         <StyledTool
             title="Set target location"
+            active={model.editing === Editing.SetTarget}
             background={Color.Target}
         />
 
         <StyledTool
             title="Add boulder"
+            active={model.editing === Editing.AddWall}
             background={Color.Wall}
         />
 
         <StyledTool
             title="Add gravel"
+            active={model.editing === Editing.AddGravel}
             background={Color.Gravel}
         />
 
         <StyledTool
             title="Add wormhole entrance"
+            active={model.editing === Editing.AddPortalIn}
             background={Color.PortalIn}
         />
 
         <StyledTool
             title="Add wormhole exit"
+            active={model.editing === Editing.AddPortalOut}
             background={Color.PortalOut}
         />
 
         <StyledTool
             title="Clear cell"
+            active={model.editing === Editing.Remove}
             background={Color.Default}
         />
 
