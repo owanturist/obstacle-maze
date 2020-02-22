@@ -107,7 +107,7 @@ describe('Maze.serialize()', () => {
 
 
 it('Maze construction', () => {
-    const _0 = Maze.init(20, 8);
+    const _0 = Maze.init(8, 20);
     expect(Maze.serialize(_0)).toBe(`
 ....................
 ....................

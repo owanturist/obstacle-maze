@@ -10,10 +10,12 @@
     "@types/node": "^12.12.27",
     "@types/react": "^16.9.20",
     "@types/react-dom": "^16.9.5",
+    "@types/styled-components": "^5.0.0",
     "frctl": "^1.0.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-scripts": "3.4.0",
+    "styled-components": "^5.0.1",
     "tslint": "^6.0.0",
     "typescript": "^3.7.5",
     "workerize-loader": "^1.1.0"

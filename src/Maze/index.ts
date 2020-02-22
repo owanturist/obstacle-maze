@@ -74,8 +74,8 @@ export interface Maze {
 
 class MazeImpl implements Maze {
     public constructor(
-        private readonly colsCount: number,
         private readonly rowsCount: number,
+        private readonly colsCount: number,
         private readonly start: Maybe<ID>,
         private readonly target: Maybe<ID>,
         private readonly obstacles: Dict<ID, Obstacle>
@@ -99,8 +99,8 @@ class MazeImpl implements Maze {
 
     public setStart(id: ID): Maze {
         return new MazeImpl(
-            this.colsCount,
             this.rowsCount,
+            this.colsCount,
             Just(id),
             Just(id).isEqual(this.target) ? Nothing : this.target,
             this.obstacles.remove(id)
@@ -109,8 +109,8 @@ class MazeImpl implements Maze {
 
     public setTarget(id: ID): Maze {
         return new MazeImpl(
-            this.colsCount,
             this.rowsCount,
+            this.colsCount,
             Just(id).isEqual(this.start) ? Nothing : this.start,
             Just(id),
             this.obstacles.remove(id)
@@ -119,8 +119,8 @@ class MazeImpl implements Maze {
 
     public setObstacle(id: ID, obstacle: Obstacle): Maze {
         return new MazeImpl(
-            this.colsCount,
             this.rowsCount,
+            this.colsCount,
             Just(id).isEqual(this.start) ? Nothing : this.start,
             Just(id).isEqual(this.target) ? Nothing : this.target,
             this.obstacles.insert(id, obstacle)
@@ -129,8 +129,8 @@ class MazeImpl implements Maze {
 
     public remove(id: ID): Maze {
         return new MazeImpl(
-            this.colsCount,
             this.rowsCount,
+            this.colsCount,
             Just(id).isEqual(this.start) ? Nothing : this.start,
             Just(id).isEqual(this.target) ? Nothing : this.target,
             this.obstacles.remove(id)
@@ -198,9 +198,9 @@ class MazeImpl implements Maze {
     }
 }
 
-export const init = (cols: number, rows: number): Maze => new MazeImpl(
-    cols,
+export const init = (rows: number, cols: number): Maze => new MazeImpl(
     rows,
+    cols,
     Nothing,
     Nothing,
     Dict.empty as Dict<ID, Obstacle>
@@ -375,8 +375,8 @@ export const deserialize = (input: string): Either<string, Maze> => {
         }
 
         return Right(new MazeImpl(
-            N,
             rows.length,
+            N,
             Maybe.fromNullable(start[ 0 ]),
             Maybe.fromNullable(target[ 0 ]),
             obstacles
