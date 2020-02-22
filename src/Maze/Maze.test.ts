@@ -1,4 +1,4 @@
-import * as Maze from './Maze';
+import * as Maze from './index';
 import Maybe from 'frctl/Maybe';
 import Either from 'frctl/Either';
 import Dict from 'frctl/Dict';
