@@ -1,6 +1,7 @@
-import * as Maze from './index';
 import Maybe from 'frctl/Maybe';
 import Either from 'frctl/Either';
+
+import * as Maze from './index';
 
 describe('Maze.deserialize()', () => {
     it('Invalid', () => {

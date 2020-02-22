@@ -2,6 +2,7 @@ import {
     Order,
     Comparable
 } from 'frctl/Basics';
+import Maybe, { Nothing, Just } from 'frctl/Maybe';
 
 import {
     Setup,
@@ -15,6 +16,7 @@ import {
     PriorityQueue,
     empty as emptyPriorityQueue
 } from '../PriorityQueue';
+
 
 const NORAML_DURATION = 1;
 const GRAVEL_DURATION = NORAML_DURATION * 2;
@@ -90,6 +92,8 @@ class BFS {
                 }
             }
         }
+
+        this.visit(start[ 0 ], start[ 1 ]);
     }
 
     private isVisited(row: number, col: number): boolean {
@@ -105,8 +109,8 @@ class BFS {
     }
 
     private schedule(way: Way, row: number, col: number): void {
-        if (col < 0 || col >= this.cols - 1
-            || row < 0 || row >= this.rows - 1
+        if (col < 0 || col >= this.cols
+            || row < 0 || row >= this.rows
             || this.isVisited(row, col)
         ) {
             return;
@@ -138,20 +142,13 @@ class BFS {
     private lookup(way: Way): void {
         const [ row, col ] = way.coordinates();
 
-        // a circle lookup from top-left clockwise, just for fun
-        this.schedule(way, row - 1, col - 1);  // top-left
         this.schedule(way, row - 1, col,   );  // top
-        this.schedule(way, row - 1, col + 1);  // top-right
         this.schedule(way, row    , col + 1);  // right
-        this.schedule(way, row + 1, col + 1);  // bottom-right
         this.schedule(way, row + 1, col,   );  // bottom
-        this.schedule(way, row + 1, col - 1);  // bottom-left
         this.schedule(way, row    , col - 1);  // left
     }
 
-    public findShortestPaths(): Array<Path> {
-        const paths: Array<Path> = [];
-
+    public findShortestPaths(): Maybe<Path> {
         this.lookup(Way.start(this.start));
 
         while (!this.pq.isEmpty()) {
@@ -162,28 +159,22 @@ class BFS {
                 continue;
             }
 
-            this.visit(row, col);
-
             if (this.isTarget(row, col)) {
-                paths.push(way.getPath());
+                return Just(way.getPath());
             }
 
-            // in case of concuret shortest paths it has to process the rest
-            // because it cannot guarantee that no one exists in queue
-            // but it does that next additions are longer
-            if (paths.length === 0) {
-                this.lookup(way);
-            }
+            this.visit(row, col);
+            this.lookup(way);
         }
 
-        return paths;
+        return Nothing;
     }
 }
 
 /**
  * We trust the Maze flow so `setup` is valid.
  */
-export const solve = (setup: Setup): Array<Path> => {
+export const solve = (setup: Setup): Maybe<Path> => {
     const bfs = new BFS(
         setup.start,
         setup.target,
