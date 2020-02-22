@@ -20,6 +20,7 @@ import {
 
 const NORAML_DURATION = 1;
 const GRAVEL_DURATION = NORAML_DURATION * 2;
+const TELEPORT_DURATION = 0;
 
 
 export type Path = Array<[ number, number ]>;
@@ -133,7 +134,7 @@ class BFS {
 
                 // Schedule all PortalOuts
                 for (const [ portalRow, portalCol ] of this.portalsOut) {
-                    this.schedule(way, portalRow, portalCol);
+                    this.schedule(way.next(TELEPORT_DURATION, row, col), portalRow, portalCol);
                 }
             }
         }
