@@ -73,7 +73,7 @@ o..
         expect(maze.cols()).toBe(20);
         expect(maze.rows()).toBe(10);
 
-        const config = maze.toConfig();
+        const config = maze.setup();
 
         expect(config.map(({ start }) => start)).toEqual(Maybe.Just(86));
         expect(config.map(({ target }) => target)).toEqual(Maybe.Just(50));

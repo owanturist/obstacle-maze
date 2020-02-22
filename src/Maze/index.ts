@@ -26,7 +26,7 @@ export enum Obstacle
 /**
  * Represents minimum available Maze configuration for solving.
  */
-export type Config = Readonly<{
+export type Setup = Readonly<{
     cols: number;
     rows: number;
     start: ID;
@@ -71,7 +71,7 @@ export interface Maze {
 
     fold<R>(fn: (id: ID, step: Step, acc: R) => R, acc: R): R;
 
-    toConfig(): Maybe<Config>;
+    setup(): Maybe<Setup>;
 }
 
 class MazeImpl implements Maze {
@@ -165,7 +165,7 @@ class MazeImpl implements Maze {
         return result;
     }
 
-    public toConfig(): Maybe<Config> {
+    public setup(): Maybe<Setup> {
         return Maybe.shape({
             start: this.start,
             target: this.target,
