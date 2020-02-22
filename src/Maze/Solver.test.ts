@@ -9,7 +9,7 @@ const solve = (schema: string): string | Either<string, Solver.Path> => {
         .chain(setup => Solver.solve(setup).toEither('No path'));
 };
 
-it('Maze.Solver, non of obstacles, next to each other in a row', () => {
+it('Maze.Solver non of obstacles, next to each other in a row', () => {
     expect(solve(`
 ox
 ..
@@ -27,7 +27,7 @@ x.
     ]));
 });
 
-it('Maze.Solver, non of obstacles, single cell between in a row', () => {
+it('Maze.Solver non of obstacles, single cell between in a row', () => {
     expect(solve(`
 o.x
 ...
@@ -48,7 +48,7 @@ x..
     ]));
 });
 
-it('Maze.Solver, non of obstacles, big gap between in a row', () => {
+it('Maze.Solver non of obstacles, big gap between in a row', () => {
     expect(solve(`
 ...........
 ..o.....x..
@@ -64,7 +64,7 @@ it('Maze.Solver, non of obstacles, big gap between in a row', () => {
     ]));
 });
 
-it('Maze.Solver, non of obstacles, next to each other in diagonal', () => {
+it('Maze.Solver non of obstacles, next to each other in diagonal', () => {
     expect(solve(`
 o.
 .x
@@ -75,7 +75,7 @@ o.
     ]));
 });
 
-it('Maze.Solver, non of obstacles, gap between in diagonal', () => {
+it('Maze.Solver non of obstacles, gap between in diagonal', () => {
     expect(solve(`
 o....
 .....
@@ -133,7 +133,7 @@ x....
     ]));
 });
 
-it('Maze.Solver, walls can block the solver', () => {
+it('Maze.Solver walls can block the solver', () => {
     expect(solve(`
 o#....
 ##....
@@ -153,7 +153,7 @@ o...##
     `)).toEqual(Either.Left('No path'));
 });
 
-it('Maze.Solver, gravel cannot block the solver', () => {
+it('Maze.Solver gravel cannot block the solver', () => {
     expect(solve(`
 o;;;;;
 ;;;;;;
@@ -170,7 +170,7 @@ o;;;;;
     ]));
 });
 
-it('Maze.Solver, portal in cannot block the solver', () => {
+it('Maze.Solver portal in cannot block the solver', () => {
     expect(solve(`
 o@@@@@
 @@@@@@
@@ -187,7 +187,7 @@ o@@@@@
     ]));
 });
 
-it('Maze.Solver, portal out cannot block the solver', () => {
+it('Maze.Solver portal out cannot block the solver', () => {
     expect(solve(`
 o*****
 ******
@@ -201,5 +201,108 @@ o*****
         [ 1, 4 ],
         [ 1, 5 ],
         [ 2, 5 ]
+    ]));
+});
+
+it('Maze.Solver gravel is slower', () => {
+    expect(solve(`
+.....
+..#..
+.o#x.
+.;#;.
+.;;;.
+    `)).toEqual(Either.Right([
+        [ 2, 1 ],
+        [ 1, 1 ],
+        [ 0, 1 ],
+        [ 0, 2 ],
+        [ 0, 3 ],
+        [ 1, 3 ],
+        [ 2, 3 ]
+    ]));
+
+    expect(solve(`
+x;;;o
+.;;;.
+.;;;.
+.....
+    `)).toEqual(Either.Right([
+        [ 0, 4 ],
+        [ 0, 3 ],
+        [ 0, 2 ],
+        [ 0, 1 ],
+        [ 0, 0 ]
+    ]));
+
+    expect(solve(`
+x;;;;
+.;;;o
+.;;;.
+.....
+    `)).toEqual(Either.Right([
+        [ 1, 4 ],
+        [ 1, 3 ],
+        [ 1, 2 ],
+        [ 1, 1 ],
+        [ 1, 0 ],
+        [ 0, 0 ]
+    ]));
+
+    expect(solve(`
+x;;;;
+.;;;;
+.;;;o
+.....
+    `)).toEqual(Either.Right([
+        [ 2, 4 ],
+        [ 3, 4 ],
+        [ 3, 3 ],
+        [ 3, 2 ],
+        [ 3, 1 ],
+        [ 3, 0 ],
+        [ 2, 0 ],
+        [ 1, 0 ],
+        [ 0, 0 ]
+    ]));
+
+    expect(solve(`
+x..
+;#.
+;#.
+;#.
+o..
+    `)).toEqual(Either.Right([
+        [ 4, 0 ],
+        [ 3, 0 ],
+        [ 2, 0 ],
+        [ 1, 0 ],
+        [ 0, 0 ]
+    ]));
+
+    expect(solve(`
+x...
+;##.
+;#..
+;o.#
+    `)).toEqual(Either.Right([
+        [ 3, 1 ],
+        [ 3, 0 ],
+        [ 2, 0 ],
+        [ 1, 0 ],
+        [ 0, 0 ]
+    ]));
+
+    expect(solve(`
+x...
+;##.
+;;o.
+    `)).toEqual(Either.Right([
+        [ 2, 2 ],
+        [ 2, 3 ],
+        [ 1, 3 ],
+        [ 0, 3 ],
+        [ 0, 2 ],
+        [ 0, 1 ],
+        [ 0, 0 ]
     ]));
 });
