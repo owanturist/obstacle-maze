@@ -74,8 +74,8 @@ o..
 
         const config = maze.setup();
 
-        expect(config.map(({ start }) => start)).toEqual(Maybe.Just(86));
-        expect(config.map(({ target }) => target)).toEqual(Maybe.Just(50));
+        expect(config.map(({ start }) => start)).toEqual(Maybe.Just([ 4, 6 ]));
+        expect(config.map(({ target }) => target)).toEqual(Maybe.Just([ 2, 10 ]));
 
         const obstacles = config.map(({ obstacles }) => obstacles).getOrElse([]);
 

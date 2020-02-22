@@ -27,8 +27,8 @@ export enum Obstacle
  * Represents minimum available Maze configuration for solving.
  */
 export type Setup = Readonly<{
-    start: ID;
-    target: ID;
+    start: [ number, number ];
+    target: [ number, number ];
     obstacles: Array<Array<Obstacle>>;
 }>;
 
@@ -176,15 +176,25 @@ class MazeImpl implements Maze {
 
             const listOfObstacles = this.obstacles.entries();
 
-            for (const [ index, obstacle ] of listOfObstacles) {
-                const col = index % this.colsCount;
-                const row = Math.floor(index / this.colsCount);
+            for (const [ id, obstacle ] of listOfObstacles) {
+                const [ row, col ] = this.toRowCol(id);
 
                 obstacles[ row ][ col ] = obstacle;
             }
 
-            return { start, target, obstacles };
+            return {
+                start: this.toRowCol(start),
+                target: this.toRowCol(target),
+                obstacles
+            };
         });
+    }
+
+    private toRowCol(id: ID): [ number, number ] {
+        return [
+            Math.floor(id / this.colsCount),
+            id % this.colsCount
+        ];
     }
 }
 

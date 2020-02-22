@@ -66,11 +66,9 @@ class BFS {
     private readonly pq: PriorityQueue<Way>;
 
     public constructor(
-        private readonly cols: number,
-        private readonly rows: number,
-        private readonly start: ID,
-        private readonly target: ID,
-        private readonly obstacles: Array<null | Obstacle>
+        private readonly start: [ number, number ],
+        private readonly target: [ number, number ],
+        private readonly obstacles: Array<Array<Obstacle>>
     ) {}
 
     private schedule(way: Way, col: number, row: number): void {
@@ -113,8 +111,6 @@ class BFS {
  */
 export const solve = (setup: Setup): Array<Path> => {
     const bfs = new BFS(
-        setup.cols,
-        setup.rows,
         setup.start,
         setup.target,
         setup.obstacles
