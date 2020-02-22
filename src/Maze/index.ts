@@ -214,7 +214,7 @@ const SYMBOL_START = 'o';
 const SYMBOL_TARGET = 'x';
 const SYMBOL_PATH = '.';
 const SYMBOL_WALL = '#';
-const SYMBOL_GRAVEL = ',';
+const SYMBOL_GRAVEL = ';';
 const SYMBOL_PORTAL_IN = '@';
 const SYMBOL_PORTAL_OUT = '*';
 
