@@ -10,7 +10,7 @@ import {
 } from './index';
 import {
     NonEmptyStack,
-    init as initNonEmptyStack
+    singleton as initNonEmptyStack
 } from '../NonEmptyStack';
 import {
     PriorityQueue,

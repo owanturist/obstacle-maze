@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Dispatch } from 'Provider';
 import Set from 'frctl/Set';
-import Maybe from 'frctl/Maybe';
+import Maybe, { Nothing, Just } from 'frctl/Maybe';
 import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optional';
 
 import {
@@ -98,16 +98,16 @@ export const AddObstacle = Utils.cons(class AddObstacle extends Mode {
 });
 
 export type Model = Readonly<{
-    multiple: boolean;
     mode: Mode;
+    multiple: Maybe<Maze.Maze>;
     history: History<Maze.Maze>;
     maze: Maze.Maze;
     solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
 }>;
 
 export const initial = (rows: number, cols: number): Model => ({
-    multiple: false,
     mode: AddObstacle(Maze.Obstacle.Wall),
+    multiple: Nothing,
     history: emptyHistory,
     maze: Maze.init(rows, cols),
     solving: NotAsked
@@ -134,7 +134,7 @@ const StartMultiple = Utils.cons(class StartMultiple implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            multiple: true,
+            multiple: Just(model.maze), // keep maze to push into history
             maze: model.mode.edit(this.id, model.maze),
             solving: NotAsked
         };
@@ -145,8 +145,8 @@ const StopMultiple = Utils.inst(class StopMultiple implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            multiple: false,
-            history: model.history.push(model.maze)
+            multiple: Nothing,
+            history: model.history.push(model.multiple.getOrElse(model.maze))
         };
     }
 });
@@ -185,8 +185,8 @@ const EditCell = Utils.cons(class EditCell implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            history: model.multiple ? model.history : model.history.push(model.maze),
             maze: model.mode.edit(this.id, model.maze),
+            history: model.multiple.isJust() ? model.history : model.history.push(model.maze),
             solving: NotAsked
         };
     }
@@ -487,7 +487,7 @@ export const View: React.FC<{
         />
 
         <ViewGrid
-            multiple={model.multiple}
+            multiple={model.multiple.isJust()}
             mode={model.mode}
             maze={model.maze}
             path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}

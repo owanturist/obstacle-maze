@@ -23,14 +23,14 @@ const maze = Maze.deserialize(`
 .......#..######..#......
 ........#........#.......
 .........########........
-.........................
+..........................
 `.trim());
 
 export interface Model {
     grid: Grid.Model;
 }
 
-const initialGrid = Grid.initial(80, 80);
+const initialGrid = Grid.initial(20, 20);
 
 export const initial: Model = {
     grid: {
