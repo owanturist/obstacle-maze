@@ -333,17 +333,28 @@ const StyledGrid = styled.div<StyledGridProps>`
     }
 `;
 
-class ViewGrid extends React.PureComponent<{
+interface ViewGridProps {
     multiple: boolean;
     maze: Maze.Maze;
     path: Set<Maze.ID>;
     dispatch: Dispatch<Msg>;
-}> {
+}
+
+class ViewGrid extends React.PureComponent<ViewGridProps> {
+    private onMouseLeave = () => {
+        if (this.props.multiple) {
+            this.props.dispatch(StopMultiple);
+        }
+    }
+
     public render() {
         const { multiple, maze, path, dispatch } = this.props;
 
         return (
-            <StyledGrid cols={maze.cols()}>
+            <StyledGrid
+                cols={maze.cols()}
+                onMouseLeave={this.onMouseLeave}
+            >
                 {maze.map(step => (
                     <ViewCell
                         key={step.id}
