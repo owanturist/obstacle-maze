@@ -61,37 +61,33 @@ export const WithObstacles = () => {
     );
 };
 
+const makeModeKnob = (): Grid.Mode => {
+    const mode = Knobs.radios('Editing', {
+        'Add Wall': 'add_wall',
+        'Add Gravel': 'add_gravel',
+        'Add Portal In': 'add_portal_in',
+        'Add Portal Out': 'add_portal_out',
+        'Set Start': 'set_start',
+        'Set Target': 'set_target',
+        'Clear Cell': 'clear_cell'
+    }, 'add_gravel');
 
-export const ActiveTool = () => {
-    const editing = Knobs.radios('Editing', {
-        'Set Start': Grid.Editing.SetStart,
-        'Set Target': Grid.Editing.SetTarget,
-        'Add Wall': Grid.Editing.AddWall,
-        'Add Gravel': Grid.Editing.AddGravel,
-        'Add Portal In': Grid.Editing.AddPortalIn,
-        'Add Portal Out': Grid.Editing.AddPortalOut,
-        'Remove': Grid.Editing.Remove
-    }, Grid.Editing.SetStart);
-
-    const initialModel = Grid.initial(20, 20);
-    const model = {
-        ...initialModel,
-        editing: Maybe.Just(editing)
-    };
-
-    return (
-        <Grid.View
-            model={model}
-            dispatch={action('Dispatch')}
-        />
-    );
+    switch (mode) {
+        case 'add_wall': return Grid.AddObstacle(Obstacle.Wall);
+        case 'add_gravel': return Grid.AddObstacle(Obstacle.Gravel);
+        case 'add_portal_in': return Grid.AddObstacle(Obstacle.PortalIn);
+        case 'add_portal_out': return Grid.AddObstacle(Obstacle.PortalOut);
+        case 'set_start': return Grid.SetStart;
+        case 'set_target': return Grid.SetTarget;
+        case 'clear_cell': return Grid.ClearCell;
+    }
 };
 
-export const Solving = () => {
+export const ActiveMode = () => {
     const initialModel = Grid.initial(20, 20);
     const model = {
         ...initialModel,
-        solving: Knobs.boolean('Loading', true) ? RemoteData.Loading : RemoteData.NotAsked
+        mode: makeModeKnob()
     };
 
     return (

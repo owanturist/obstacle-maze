@@ -1,9 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Dispatch } from 'Provider';
-import { Cata } from 'frctl/Basics';
 import Set from 'frctl/Set';
-import Maybe, { Nothing, Just } from 'frctl/Maybe';
+import Maybe from 'frctl/Maybe';
 import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optional';
 
 import * as Maze from 'Maze';
@@ -12,14 +11,7 @@ import * as Utils from 'Utils';
 
 // M O D E L
 
-type EditingPattern<R> = Cata<{
-    SetStart(): R;
-    SetTarget(): R;
-    Remove(): R;
-    AddObstacle(obstacle: Maze.Obstacle): R;
-}>;
-
-export abstract class Editing {
+export abstract class Mode {
     public isSetStart(): boolean {
         return false;
     }
@@ -28,7 +20,7 @@ export abstract class Editing {
         return false;
     }
 
-    public isRemove(): boolean {
+    public isClearCell(): boolean {
         return false;
     }
 
@@ -36,40 +28,54 @@ export abstract class Editing {
         return false;
     }
 
-    public abstract cata<R>(pattern: EditingPattern<R>): R;
+    public abstract isEqual(another: Mode): boolean;
+
+    public abstract edit(id: Maze.ID, maze: Maze.Maze): Maze.Maze;
 }
 
-export const SetStart = Utils.inst(class SetStart extends Editing {
+export const SetStart = Utils.inst(class SetStart extends Mode {
     public isSetStart(): boolean {
         return true;
     }
 
-    public cata<R>(pattern: EditingPattern<R>):R {
-        return typeof pattern.SetStart === 'function' ? pattern.SetStart() : (pattern._ as () => R)();
+    public isEqual(another: Mode): boolean {
+        return another.isSetStart();
+    }
+
+    public edit(id: Maze.ID, maze: Maze.Maze): Maze.Maze {
+        return maze.setStart(id);
     }
 });
 
-export const SetTarget = Utils.inst(class SetTarget extends Editing {
+export const SetTarget = Utils.inst(class SetTarget extends Mode {
     public isSetTarget(): boolean {
         return true;
     }
 
-    public cata<R>(pattern: EditingPattern<R>):R {
-        return typeof pattern.SetTarget === 'function' ? pattern.SetTarget() : (pattern._ as () => R)();
+    public isEqual(another: Mode): boolean {
+        return another.isSetTarget();
+    }
+
+    public edit(id: Maze.ID, maze: Maze.Maze): Maze.Maze {
+        return maze.setTarget(id);
     }
 });
 
-export const Remove = Utils.inst(class Remove extends Editing {
-    public isRemove(): boolean {
+export const ClearCell = Utils.inst(class ClearCell extends Mode {
+    public isClearCell(): boolean {
         return true;
     }
 
-    public cata<R>(pattern: EditingPattern<R>):R {
-        return typeof pattern.Remove === 'function' ? pattern.Remove() : (pattern._ as () => R)();
+    public isEqual(another: Mode): boolean {
+        return another.isClearCell();
+    }
+
+    public edit(id: Maze.ID, maze: Maze.Maze): Maze.Maze {
+        return maze.remove(id);
     }
 });
 
-export const AddObstacle = Utils.cons(class AddObstacle extends Editing {
+export const AddObstacle = Utils.cons(class AddObstacle extends Mode {
     public constructor(private readonly obstacle: Maze.Obstacle) {
         super();
     }
@@ -78,19 +84,23 @@ export const AddObstacle = Utils.cons(class AddObstacle extends Editing {
         return this.obstacle === obstacle;
     }
 
-    public cata<R>(pattern: EditingPattern<R>):R {
-        return typeof pattern.AddObstacle === 'function' ? pattern.AddObstacle(this.obstacle) : (pattern._ as () => R)();
+    public isEqual(another: Mode): boolean {
+        return another.isAddObstacle(this.obstacle);
+    }
+
+    public edit(id: Maze.ID, maze: Maze.Maze): Maze.Maze {
+        return maze.setObstacle(id, this.obstacle);
     }
 });
 
 export type Model = Readonly<{
-    editing: Editing;
+    mode: Mode;
     maze: Maze.Maze;
     solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
 }>;
 
 export const initial = (rows: number, cols: number): Model => ({
-    editing: AddObstacle(Maze.Obstacle.Wall),
+    mode: AddObstacle(Maze.Obstacle.Wall),
     maze: Maze.init(rows, cols),
     solving: NotAsked
 });
@@ -99,13 +109,13 @@ export const initial = (rows: number, cols: number): Model => ({
 
 export interface Msg extends Utils.Msg<[ Model ], Model> {}
 
-const SetEditing = Utils.cons(class SetEditing implements Msg {
-    public constructor(private readonly editing: Editing) {}
+const SetMode = Utils.cons(class SetMode implements Msg {
+    public constructor(private readonly mode: Mode) {}
 
     public update(model: Model): Model {
         return {
             ...model,
-            editing: this.editing
+            mode: this.mode
         };
     }
 });
@@ -142,83 +152,18 @@ const EditCell = Utils.cons(class EditCell implements Msg {
 
     public update(model: Model): Model {
         return {
-            ...model
-        }
-
-        return model.editing.map(editing => {
-            switch (editing) {
-                case Editing.SetStart: {
-                    return {
-                        ...model,
-                        maze: model.maze.setStart(this.id)
-                    };
-                }
-
-                case Editing.SetTarget: {
-                    return {
-                        ...model,
-                        maze: model.maze.setTarget(this.id)
-                    };
-                }
-
-                case Editing.AddWall: {
-                    return {
-                        ...model,
-                        maze: model.maze.setObstacle(this.id, Maze.Obstacle.Wall)
-                    };
-                }
-
-                case Editing.AddGravel: {
-                    return {
-                        ...model,
-                        maze: model.maze.setObstacle(this.id, Maze.Obstacle.Gravel)
-                    };
-                }
-
-                case Editing.AddPortalIn: {
-                    return {
-                        ...model,
-                        maze: model.maze.setObstacle(this.id, Maze.Obstacle.PortalIn)
-                    };
-                }
-
-                case Editing.AddPortalOut: {
-                    return {
-                        ...model,
-                        maze: model.maze.setObstacle(this.id, Maze.Obstacle.PortalOut)
-                    };
-                }
-
-                case Editing.Remove: {
-                    return {
-                        ...model,
-                        maze: model.maze.remove(this.id)
-                    };
-                }
-
-                default: {
-                    return model;
-                }
-            }
-        }).getOrElse(model);
+            ...model,
+            solving: NotAsked,
+            maze: model.mode.edit(this.id, model.maze)
+        };
     }
 });
 
 // V I E W
 
-enum Color {
-    Start = '#e74c3c',
-    Target = '#2ecc71',
-    Wall = '#2c3e50',
-    Gravel = '#bdc3c7',
-    PortalIn = '#3498db',
-    PortalOut = '#e67e22',
-    Default = '#ecf0f1'
-}
-
 interface StyledCellProps {
     inPath: boolean;
-    background: Color;
+    background: string;
 }
 
 const StyledCell = styled.div<StyledCellProps>`
@@ -243,34 +188,32 @@ const StyledCell = styled.div<StyledCellProps>`
 class ViewCell extends React.PureComponent<{
     id: Maze.ID;
     inPath: boolean;
-    editing: Maybe<Editing>;
+    mode: Mode;
     step: Maze.Step;
     dispatch: Dispatch<Msg>;
 }> {
-    private getBackground(): Color {
+    private getBackground(): string {
         if (this.props.step.starting) {
-            return Color.Start;
+            return '#e74c3c';
         }
 
         if (this.props.step.targeting) {
-            return Color.Target;
+            return '#2ecc71';
         }
 
         // eslint-disable-next-line array-callback-return
-        return this.props.step.obstacle.map<Color>(obstacle => {
+        return this.props.step.obstacle.map((obstacle): string => {
             switch (obstacle) {
-                case Maze.Obstacle.Wall: return Color.Wall;
-                case Maze.Obstacle.Gravel: return Color.Gravel;
-                case Maze.Obstacle.PortalIn: return Color.PortalIn;
-                case Maze.Obstacle.PortalOut: return Color.PortalOut;
+                case Maze.Obstacle.Wall:      return '#2c3e50';
+                case Maze.Obstacle.Gravel:    return '#bdc3c7';
+                case Maze.Obstacle.PortalIn:  return '#3498db';
+                case Maze.Obstacle.PortalOut: return '#e67e22';
             }
-        }).getOrElse(Color.Default);
+        }).getOrElse('#ecf0f1');
     }
 
     private readonly onClick = () => {
-        if (this.props.editing.isJust()) {
-            this.props.dispatch(EditCell(this.props.id));
-        }
+        this.props.dispatch(EditCell(this.props.id));
     }
 
     public render() {
@@ -302,13 +245,13 @@ const StyledGrid = styled.div<StyledGridProps>`
 `;
 
 class ViewGrid extends React.PureComponent<{
-    editing: Maybe<Editing>;
+    mode: Mode;
     maze: Maze.Maze;
     path: Set<Maze.ID>;
     dispatch: Dispatch<Msg>;
 }> {
     public render() {
-        const { editing, maze, path, dispatch } = this.props;
+        const { mode, maze, path, dispatch } = this.props;
 
         return (
             <StyledGrid cols={maze.cols()}>
@@ -316,8 +259,8 @@ class ViewGrid extends React.PureComponent<{
                     acc.push(
                         <ViewCell
                             key={id}
-                            editing={editing}
                             id={id}
+                            mode={mode}
                             inPath={path.member(id)}
                             step={step}
                             dispatch={dispatch}
@@ -339,7 +282,7 @@ const StyledToolbar = styled.div`
 
 interface StyledToolProps {
     active?: boolean;
-    background: Color;
+    background: string;
 }
 
 const StyledTool = styled.div<StyledToolProps>`
@@ -352,71 +295,88 @@ const StyledTool = styled.div<StyledToolProps>`
     cursor: pointer;
 `;
 
+type Tool = Readonly<{
+    title: string;
+    color: string;
+    mode: Mode;
+}>;
+
 class ViewTool extends React.PureComponent<{
-    tool: Editing;
-    editing: Maybe<Editing>;
+    tool: Tool;
+    mode: Mode;
     dispatch: Dispatch<Msg>;
 }> {
-    private getBackground(): Color {
-        switch (this.props.tool) {
-            case Editing.SetStart: return Color.Start;
-            case Editing.SetTarget: return Color.Target;
-            case Editing.AddWall: return Color.Wall;
-            case Editing.AddGravel: return Color.Gravel;
-            case Editing.AddPortalIn: return Color.PortalIn;
-            case Editing.AddPortalOut: return Color.PortalOut;
-            default: return Color.Default;
-        }
-    }
-
     private isActive(): boolean {
-        return Just(this.props.tool).isEqual(this.props.editing);
+        return this.props.tool.mode.isEqual(this.props.mode);
     }
 
     private readonly onClick = () => {
-        this.props.dispatch(
-            this.isActive() ? ResetEditing : SetEditing(this.props.tool)
-        );
+        if (!this.isActive()) {
+            this.props.dispatch(SetMode(this.props.tool.mode));
+        }
     }
 
     public render() {
         return (
             <StyledTool
+                title={this.props.tool.title}
                 active={this.isActive()}
-                background={this.getBackground()}
+                background={this.props.tool.color}
                 onClick={this.onClick}
             />
         );
     }
 }
 
-const TOOLS = [
-    Editing.SetStart,
-    Editing.SetTarget,
-    Editing.AddWall,
-    Editing.AddGravel,
-    Editing.AddPortalIn,
-    Editing.AddPortalOut,
-    Editing.Remove
+const TOOLS: Array<Tool> = [
+    {
+        title: 'Add wall',
+        color: '#2c3e50',
+        mode: AddObstacle(Maze.Obstacle.Wall)
+    }, {
+        title: 'Add gravel',
+        color: '#bdc3c7',
+        mode: AddObstacle(Maze.Obstacle.Gravel)
+    }, {
+        title: 'Add portal in',
+        color: '#3498db',
+        mode: AddObstacle(Maze.Obstacle.PortalIn)
+    }, {
+        title: 'Add portal out',
+        color: '#e67e22',
+        mode: AddObstacle(Maze.Obstacle.PortalOut)
+    }, {
+        title: 'Set starting location',
+        color: '#e74c3c',
+        mode: SetStart
+    }, {
+        title: 'Set targeting location',
+        color: '#2ecc71',
+        mode: SetTarget
+    }, {
+        title: 'Clear cell',
+        color: '#ecf0f1',
+        mode: ClearCell
+    }
 ];
 
 const ViewToolbar: React.FC<{
-    editing: Maybe<Editing>;
+    mode: Mode;
     dispatch: Dispatch<Msg>;
-}> = ({ editing, dispatch }) => (
+}> = ({ mode, dispatch }) => (
     <StyledToolbar>
         {TOOLS.map(tool => (
             <ViewTool
-                key={tool}
+                key={tool.title}
                 tool={tool}
-                editing={editing}
+                mode={mode}
                 dispatch={dispatch}
             />
         ))}
 
         <StyledTool
             title="Remove all"
-            background={Color.Default}
+            background="#ecf0f1"
             onClick={() => dispatch(ClearMaze)}
         />
     </StyledToolbar>
@@ -434,12 +394,12 @@ export const View: React.FC<{
 }> = ({ model, dispatch }) => (
     <StyledRoot>
         <ViewToolbar
-            editing={model.editing}
+            mode={model.mode}
             dispatch={dispatch}
         />
 
         <ViewGrid
-            editing={model.editing}
+            mode={model.mode}
             maze={model.maze}
             path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
             dispatch={dispatch}
@@ -458,7 +418,6 @@ export const View: React.FC<{
         })}
 
         <button
-            disabled={model.solving.isLoading()}
             onClick={() => dispatch(Solve)}
         >
             Solve

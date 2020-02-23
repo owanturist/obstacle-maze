@@ -142,22 +142,21 @@ class MazeImpl implements Maze {
     }
 
     public fold<R>(fn: (id: ID, step: Step, acc: R) => R, acc: R): R {
+        const N = this.rowsCount * this.colsCount;
+        const start = this.start.getOrElse(-1);
+        const target = this.target.getOrElse(-1);
         let result = acc;
 
-        for (let row = 0; row < this.rowsCount; row++) {
-            for (let col = 0; col < this.colsCount; col++) {
-                const id = row * this.colsCount + col;
-
-                result = fn(
-                    id,
-                    {
-                        starting: Just(id).isEqual(this.start),
-                        targeting: Just(id).isEqual(this.target),
-                        obstacle: this.obstacles.get(id)
-                    },
-                    result
-                );
-            }
+        for (let id = 0; id < N; id++) {
+            result = fn(
+                id,
+                {
+                    starting: id === start,
+                    targeting: id === target,
+                    obstacle: this.obstacles.get(id)
+                },
+                result
+            );
         }
 
         return result;
