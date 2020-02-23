@@ -244,13 +244,15 @@ const StyledCell = styled.div<StyledCellProps>`
     }
 `;
 
-class ViewCell extends React.PureComponent<{
+interface ViewCellProps {
     id: Maze.ID;
     inPath: boolean;
     multiple: boolean;
     step: Maze.Step;
     dispatch: Dispatch<Msg>;
-}> {
+}
+
+class ViewCell extends React.Component<ViewCellProps> {
     private getBackground(): string {
         if (this.props.step.starting) {
             return '#e74c3c';
@@ -271,34 +273,45 @@ class ViewCell extends React.PureComponent<{
         }).getOrElse('#ecf0f1');
     }
 
-    private readonly onEditCell = () => {
-        this.props.dispatch(EditCell(this.props.id));
+    private readonly onMouseDown = () => {
+        if (!this.props.multiple) {
+            this.props.dispatch(EditCell(this.props.id));
+        }
     }
 
-    private readonly onStopMultiple = () => {
-        this.props.dispatch(StopMultiple);
+    private readonly onMouseEnter = () => {
+        if (this.props.multiple) {
+            this.props.dispatch(EditCell(this.props.id));
+        }
+    }
+
+    private readonly onMouseUp = () => {
+        if (this.props.multiple) {
+            this.props.dispatch(StopMultiple);
+        }
+    }
+
+    // we don't care about multiple here because it doesn't required for view
+    public shouldComponentUpdate(nextProps: ViewCellProps): boolean {
+        const { props } = this;
+
+        return props.id !== nextProps.id
+            || props.inPath !== nextProps.inPath
+            || props.dispatch !== nextProps.dispatch
+            || props.step.starting !== nextProps.step.starting
+            || props.step.targeting !== nextProps.step.targeting
+            || !props.step.obstacle.isEqual(nextProps.step.obstacle)
+            ;
     }
 
     public render() {
-        const { multiple, inPath } = this.props;
-        const background = this.getBackground();
-
-        if (multiple) {
-            return (
-                <StyledCell
-                    inPath={inPath}
-                    background={background}
-                    onMouseEnter={this.onEditCell}
-                    onMouseUp={this.onStopMultiple}
-                />
-            );
-        }
-
         return (
             <StyledCell
-                inPath={inPath}
-                background={background}
-                onMouseDown={this.onEditCell}
+                inPath={this.props.inPath}
+                background={this.getBackground()}
+                onMouseDown={this.onMouseDown}
+                onMouseEnter={this.onMouseEnter}
+                onMouseUp={this.onMouseUp}
             />
         );
     }
@@ -312,7 +325,7 @@ const StyledGrid = styled.div<StyledGridProps>`
     display: flex;
     flex-flow: row wrap;
     margin-top: 10px;
-    width: ${props => 30 * props.cols}px;
+    width: ${props => 16 * props.cols}px;
     min-width: 480px;
     max-width: 100%;
 
