@@ -33,9 +33,10 @@ export type Setup = Readonly<{
 }>;
 
 /**
- * Represents fold step.
+ * Represents Maze cell.
  */
-export type Step = Readonly<{
+export type Cell = Readonly<{
+    id: ID;
     starting: boolean;
     targeting: boolean;
     obstacle: Maybe<Obstacle>;
@@ -67,7 +68,7 @@ export interface Maze {
 
     // D E C O N S T R U C T I O N
 
-    map<T>(fn: (id: ID, step: Step) => T): Array<T>;
+    map<T>(fn: (cell: Cell) => T): Array<T>;
 
     setup(): Maybe<Setup>;
 }
@@ -149,7 +150,7 @@ class MazeImpl implements Maze {
     // So time complexity is `O(n)`.
     // It's crucial to map the `Maze` as fast as possible because
     // each mutation causes rerender of rows*cols amount elements which is a lot.
-    public map<T>(fn: (id: ID, step: Step) => T): Array<T> {
+    public map<T>(fn: (cell: Cell) => T): Array<T> {
         const start = this.start.getOrElse(-1);
         const target = this.target.getOrElse(-1);
         const obstacles = this.obstacles.entries();
@@ -163,23 +164,25 @@ class MazeImpl implements Maze {
 
         while (i < N) {
             while (i < N && (j >= M || i < obstacles[ j ][ 0 ])) {
-                const step: Step = {
+                const cell: Cell = {
+                    id: i,
                     starting: i === start,
                     targeting: i === target,
                     obstacle: Nothing
                 };
 
-                result[ i ] = fn(i++, step);
+                result[ i++ ] = fn(cell);
             }
 
             while (j < M && i >= obstacles[ j ][ 0 ]) {
-                const step: Step = {
+                const cell: Cell = {
+                    id: i,
                     starting: i === start,
                     targeting: i === target,
                     obstacle: Just(obstacles[ j++ ][ 1 ])
                 };
 
-                result[ i ] = fn(i++, step);
+                result[ i++ ] = fn(cell);
             }
         }
 
@@ -261,20 +264,20 @@ const obstacleToSymbol = (obstacle: Obstacle): string => {
     }
 };
 
-const stepToSymbol = (step: Step): string => {
-    if (step.starting) {
+const stepToSymbol = (cell: Cell): string => {
+    if (cell.starting) {
         return SYMBOL_START;
     }
 
-    if (step.targeting) {
+    if (cell.targeting) {
         return SYMBOL_TARGET;
     }
 
-    return step.obstacle.map(obstacleToSymbol).getOrElse(SYMBOL_PATH);
+    return cell.obstacle.map(obstacleToSymbol).getOrElse(SYMBOL_PATH);
 };
 
 export const serialize = (maze: Maze): string => {
-    const symbols = maze.map((_id, step) => stepToSymbol(step));
+    const symbols = maze.map(stepToSymbol);
     const lines = new Array(maze.rows());
     const N = maze.cols();
 

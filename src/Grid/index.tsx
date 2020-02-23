@@ -245,10 +245,9 @@ const StyledCell = styled.div<StyledCellProps>`
 `;
 
 interface ViewCellProps {
-    id: Maze.ID;
     inPath: boolean;
     multiple: boolean;
-    step: Maze.Step;
+    step: Maze.Cell;
     dispatch: Dispatch<Msg>;
 }
 
@@ -275,13 +274,13 @@ class ViewCell extends React.Component<ViewCellProps> {
 
     private readonly onMouseDown = () => {
         if (!this.props.multiple) {
-            this.props.dispatch(EditCell(this.props.id));
+            this.props.dispatch(EditCell(this.props.step.id));
         }
     }
 
     private readonly onMouseEnter = () => {
         if (this.props.multiple) {
-            this.props.dispatch(EditCell(this.props.id));
+            this.props.dispatch(EditCell(this.props.step.id));
         }
     }
 
@@ -295,9 +294,9 @@ class ViewCell extends React.Component<ViewCellProps> {
     public shouldComponentUpdate(nextProps: ViewCellProps): boolean {
         const { props } = this;
 
-        return props.id !== nextProps.id
-            || props.inPath !== nextProps.inPath
+        return props.inPath !== nextProps.inPath
             || props.dispatch !== nextProps.dispatch
+            || props.step.id !== nextProps.step.id
             || props.step.starting !== nextProps.step.starting
             || props.step.targeting !== nextProps.step.targeting
             || !props.step.obstacle.isEqual(nextProps.step.obstacle)
@@ -345,12 +344,11 @@ class ViewGrid extends React.PureComponent<{
 
         return (
             <StyledGrid cols={maze.cols()}>
-                {maze.map((id, step) => (
+                {maze.map(step => (
                     <ViewCell
-                        key={id}
-                        id={id}
+                        key={step.id}
                         multiple={multiple}
-                        inPath={path.member(id)}
+                        inPath={path.member(step.id)}
                         step={step}
                         dispatch={dispatch}
                     />
