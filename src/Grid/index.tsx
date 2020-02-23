@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Dispatch } from 'Provider';
+import { Cata } from 'frctl/Basics';
 import Set from 'frctl/Set';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
 import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optional';
@@ -11,25 +12,85 @@ import * as Utils from 'Utils';
 
 // M O D E L
 
-// Storybook needs only string as values for radio...
-export enum Editing {
-    SetStart = 'set_start',
-    SetTarget = 'set_target',
-    AddWall = 'add_wall',
-    AddGravel = 'add_gravel',
-    AddPortalIn = 'add_portal_in',
-    AddPortalOut = 'add_portal_out',
-    Remove = 'remove'
+type EditingPattern<R> = Cata<{
+    SetStart(): R;
+    SetTarget(): R;
+    Remove(): R;
+    AddObstacle(obstacle: Maze.Obstacle): R;
+}>;
+
+export abstract class Editing {
+    public isSetStart(): boolean {
+        return false;
+    }
+
+    public isSetTarget(): boolean {
+        return false;
+    }
+
+    public isRemove(): boolean {
+        return false;
+    }
+
+    public isAddObstacle(_obstacle: Maze.Obstacle): boolean {
+        return false;
+    }
+
+    public abstract cata<R>(pattern: EditingPattern<R>): R;
 }
 
+export const SetStart = Utils.inst(class SetStart extends Editing {
+    public isSetStart(): boolean {
+        return true;
+    }
+
+    public cata<R>(pattern: EditingPattern<R>):R {
+        return typeof pattern.SetStart === 'function' ? pattern.SetStart() : (pattern._ as () => R)();
+    }
+});
+
+export const SetTarget = Utils.inst(class SetTarget extends Editing {
+    public isSetTarget(): boolean {
+        return true;
+    }
+
+    public cata<R>(pattern: EditingPattern<R>):R {
+        return typeof pattern.SetTarget === 'function' ? pattern.SetTarget() : (pattern._ as () => R)();
+    }
+});
+
+export const Remove = Utils.inst(class Remove extends Editing {
+    public isRemove(): boolean {
+        return true;
+    }
+
+    public cata<R>(pattern: EditingPattern<R>):R {
+        return typeof pattern.Remove === 'function' ? pattern.Remove() : (pattern._ as () => R)();
+    }
+});
+
+export const AddObstacle = Utils.cons(class AddObstacle extends Editing {
+    public constructor(private readonly obstacle: Maze.Obstacle) {
+        super();
+    }
+
+    public isAddObstacle(obstacle: Maze.Obstacle): boolean {
+        return this.obstacle === obstacle;
+    }
+
+    public cata<R>(pattern: EditingPattern<R>):R {
+        return typeof pattern.AddObstacle === 'function' ? pattern.AddObstacle(this.obstacle) : (pattern._ as () => R)();
+    }
+});
+
 export type Model = Readonly<{
-    editing: Maybe<Editing>;
+    editing: Editing;
     maze: Maze.Maze;
     solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
 }>;
 
 export const initial = (rows: number, cols: number): Model => ({
-    editing: Nothing,
+    editing: AddObstacle(Maze.Obstacle.Wall),
     maze: Maze.init(rows, cols),
     solving: NotAsked
 });
@@ -44,16 +105,7 @@ const SetEditing = Utils.cons(class SetEditing implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            editing: Just(this.editing)
-        };
-    }
-});
-
-const ResetEditing = Utils.inst(class ResetEditing implements Msg {
-    public update(model: Model): Model {
-        return {
-            ...model,
-            editing: Nothing
+            editing: this.editing
         };
     }
 });
@@ -79,7 +131,7 @@ const Solve = Utils.inst(class Solve implements Msg {
                     const cols = model.maze.cols();
 
                     return Set.fromList(path.map(([ row, col ]) => row * cols + col));
-                }).tap((result): RemoteData<string, Maybe<Set<Maze.ID>>> => Succeed(result))
+                }).tap<RemoteData<string, Maybe<Set<Maze.ID>>>>(Succeed)
             })
         };
     }
@@ -89,6 +141,10 @@ const EditCell = Utils.cons(class EditCell implements Msg {
     public constructor(private readonly id: Maze.ID) {}
 
     public update(model: Model): Model {
+        return {
+            ...model
+        }
+
         return model.editing.map(editing => {
             switch (editing) {
                 case Editing.SetStart: {
