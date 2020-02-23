@@ -94,12 +94,14 @@ export const AddObstacle = Utils.cons(class AddObstacle extends Mode {
 });
 
 export type Model = Readonly<{
+    multiple: boolean;
     mode: Mode;
     maze: Maze.Maze;
     solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
 }>;
 
 export const initial = (rows: number, cols: number): Model => ({
+    multiple: false,
     mode: AddObstacle(Maze.Obstacle.Wall),
     maze: Maze.init(rows, cols),
     solving: NotAsked
@@ -116,6 +118,28 @@ const SetMode = Utils.cons(class SetMode implements Msg {
         return {
             ...model,
             mode: this.mode
+        };
+    }
+});
+
+const StartMultiple = Utils.cons(class StartMultiple implements Msg {
+    public constructor(private readonly id: Maze.ID) {}
+
+    public update(model: Model): Model {
+        return {
+            ...model,
+            multiple: true,
+            maze: model.mode.edit(this.id, model.maze),
+            solving: NotAsked
+        };
+    }
+});
+
+const StopMultiple = Utils.inst(class StopMultiple implements Msg {
+    public update(model: Model): Model {
+        return {
+            ...model,
+            multiple: false
         };
     }
 });
@@ -188,6 +212,7 @@ const StyledCell = styled.div<StyledCellProps>`
 class ViewCell extends React.PureComponent<{
     id: Maze.ID;
     inPath: boolean;
+    multiple: boolean;
     mode: Mode;
     step: Maze.Step;
     dispatch: Dispatch<Msg>;
@@ -212,16 +237,48 @@ class ViewCell extends React.PureComponent<{
         }).getOrElse('#ecf0f1');
     }
 
-    private readonly onClick = () => {
+    private readonly onEditCell = () => {
         this.props.dispatch(EditCell(this.props.id));
     }
 
+    private readonly onStartMultiple = () => {
+        this.props.dispatch(StartMultiple(this.props.id));
+    }
+
+    private readonly onStopMultiple = () => {
+        this.props.dispatch(StopMultiple);
+    }
+
     public render() {
+        const { multiple, mode, inPath } = this.props;
+        const background = this.getBackground();
+
+        if (mode.isSetStart() || mode.isSetTarget()) {
+            return (
+                <StyledCell
+                    inPath={inPath}
+                    background={background}
+                    onClick={this.onEditCell}
+                />
+            );
+        }
+
+        if (multiple) {
+            return (
+                <StyledCell
+                    inPath={inPath}
+                    background={background}
+                    onMouseEnter={this.onEditCell}
+                    onMouseUp={this.onStopMultiple}
+                />
+            );
+        }
+
         return (
             <StyledCell
-                inPath={this.props.inPath}
-                background={this.getBackground()}
-                onClick={this.onClick}
+                inPath={inPath}
+                background={background}
+                onMouseDown={this.onStartMultiple}
             />
         );
     }
@@ -245,13 +302,14 @@ const StyledGrid = styled.div<StyledGridProps>`
 `;
 
 class ViewGrid extends React.PureComponent<{
+    multiple: boolean;
     mode: Mode;
     maze: Maze.Maze;
     path: Set<Maze.ID>;
     dispatch: Dispatch<Msg>;
 }> {
     public render() {
-        const { mode, maze, path, dispatch } = this.props;
+        const { multiple, mode, maze, path, dispatch } = this.props;
 
         return (
             <StyledGrid cols={maze.cols()}>
@@ -260,6 +318,7 @@ class ViewGrid extends React.PureComponent<{
                         <ViewCell
                             key={id}
                             id={id}
+                            multiple={multiple}
                             mode={mode}
                             inPath={path.member(id)}
                             step={step}
@@ -399,6 +458,7 @@ export const View: React.FC<{
         />
 
         <ViewGrid
+            multiple={model.multiple}
             mode={model.mode}
             maze={model.maze}
             path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
