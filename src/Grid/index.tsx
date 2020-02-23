@@ -287,16 +287,6 @@ class ViewCell extends React.PureComponent<{
         const { multiple, mode, inPath } = this.props;
         const background = this.getBackground();
 
-        if (mode.isSetStart() || mode.isSetTarget()) {
-            return (
-                <StyledCell
-                    inPath={inPath}
-                    background={background}
-                    onClick={this.onEditCell}
-                />
-            );
-        }
-
         if (multiple) {
             return (
                 <StyledCell
@@ -308,11 +298,24 @@ class ViewCell extends React.PureComponent<{
             );
         }
 
+        if (mode.isClearCell()
+            || mode.isAddObstacle(Maze.Obstacle.Wall)
+            || mode.isAddObstacle(Maze.Obstacle.Gravel)
+        ) {
+            return (
+                <StyledCell
+                    inPath={inPath}
+                    background={background}
+                    onMouseDown={this.onStartMultiple}
+                />
+            );
+        }
+
         return (
             <StyledCell
                 inPath={inPath}
                 background={background}
-                onMouseDown={this.onStartMultiple}
+                onClick={this.onEditCell}
             />
         );
     }
