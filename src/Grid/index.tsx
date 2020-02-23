@@ -126,18 +126,6 @@ const SetMode = Utils.cons(class SetMode implements Msg {
     }
 });
 
-const StartMultiple = Utils.cons(class StartMultiple implements Msg {
-    public constructor(private readonly id: Maze.ID) {}
-
-    public update(model: Model): Model {
-        return {
-            ...model,
-            multiple: Just(model.mode.edit(this.id, model.history.getCurrent())), // keep maze to apply multiple edits
-            solving: NotAsked
-        };
-    }
-});
-
 const StopMultiple = Utils.inst(class StopMultiple implements Msg {
     public update(model: Model): Model {
         return {
@@ -182,11 +170,24 @@ const EditCell = Utils.cons(class EditCell implements Msg {
 
     public update(model: Model): Model {
         return model.multiple.fold(
-            () => ({
-                ...model,
-                history: model.history.push(model.mode.edit(this.id, model.history.getCurrent())),
-                solving: NotAsked
-            }),
+            () => {
+                if (model.mode.isClearCell()
+                    || model.mode.isAddObstacle(Maze.Obstacle.Wall)
+                    || model.mode.isAddObstacle(Maze.Obstacle.Gravel)
+                ) {
+                    return {
+                        ...model,
+                        multiple: Just(model.mode.edit(this.id, model.history.getCurrent())), // keep maze to apply multiple edits
+                        solving: NotAsked
+                    };
+                }
+
+                return {
+                    ...model,
+                    history: model.history.push(model.mode.edit(this.id, model.history.getCurrent())),
+                    solving: NotAsked
+                };
+            },
 
             maze => ({
                 ...model,
@@ -247,7 +248,6 @@ class ViewCell extends React.PureComponent<{
     id: Maze.ID;
     inPath: boolean;
     multiple: boolean;
-    mode: Mode;
     step: Maze.Step;
     dispatch: Dispatch<Msg>;
 }> {
@@ -275,16 +275,12 @@ class ViewCell extends React.PureComponent<{
         this.props.dispatch(EditCell(this.props.id));
     }
 
-    private readonly onStartMultiple = () => {
-        this.props.dispatch(StartMultiple(this.props.id));
-    }
-
     private readonly onStopMultiple = () => {
         this.props.dispatch(StopMultiple);
     }
 
     public render() {
-        const { multiple, mode, inPath } = this.props;
+        const { multiple, inPath } = this.props;
         const background = this.getBackground();
 
         if (multiple) {
@@ -298,24 +294,11 @@ class ViewCell extends React.PureComponent<{
             );
         }
 
-        if (mode.isClearCell()
-            || mode.isAddObstacle(Maze.Obstacle.Wall)
-            || mode.isAddObstacle(Maze.Obstacle.Gravel)
-        ) {
-            return (
-                <StyledCell
-                    inPath={inPath}
-                    background={background}
-                    onMouseDown={this.onStartMultiple}
-                />
-            );
-        }
-
         return (
             <StyledCell
                 inPath={inPath}
                 background={background}
-                onClick={this.onEditCell}
+                onMouseDown={this.onEditCell}
             />
         );
     }
@@ -340,13 +323,12 @@ const StyledGrid = styled.div<StyledGridProps>`
 
 class ViewGrid extends React.PureComponent<{
     multiple: boolean;
-    mode: Mode;
     maze: Maze.Maze;
     path: Set<Maze.ID>;
     dispatch: Dispatch<Msg>;
 }> {
     public render() {
-        const { multiple, mode, maze, path, dispatch } = this.props;
+        const { multiple, maze, path, dispatch } = this.props;
 
         return (
             <StyledGrid cols={maze.cols()}>
@@ -356,7 +338,6 @@ class ViewGrid extends React.PureComponent<{
                             key={id}
                             id={id}
                             multiple={multiple}
-                            mode={mode}
                             inPath={path.member(id)}
                             step={step}
                             dispatch={dispatch}
@@ -496,7 +477,6 @@ export const View: React.FC<{
 
         <ViewGrid
             multiple={model.multiple.isJust()}
-            mode={model.mode}
             maze={model.multiple.getOrElse(model.history.getCurrent())}
             path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
             dispatch={dispatch}
