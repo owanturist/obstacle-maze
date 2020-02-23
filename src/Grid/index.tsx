@@ -5,6 +5,10 @@ import Set from 'frctl/Set';
 import Maybe from 'frctl/Maybe';
 import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optional';
 
+import {
+    History,
+    empty as emptyHistory
+} from 'History';
 import * as Maze from 'Maze';
 import * as Solver from 'Maze/Solver';
 import * as Utils from 'Utils';
@@ -96,6 +100,7 @@ export const AddObstacle = Utils.cons(class AddObstacle extends Mode {
 export type Model = Readonly<{
     multiple: boolean;
     mode: Mode;
+    history: History<Maze.Maze>;
     maze: Maze.Maze;
     solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
 }>;
@@ -103,6 +108,7 @@ export type Model = Readonly<{
 export const initial = (rows: number, cols: number): Model => ({
     multiple: false,
     mode: AddObstacle(Maze.Obstacle.Wall),
+    history: emptyHistory,
     maze: Maze.init(rows, cols),
     solving: NotAsked
 });
@@ -139,7 +145,8 @@ const StopMultiple = Utils.inst(class StopMultiple implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            multiple: false
+            multiple: false,
+            history: model.history.push(model.maze)
         };
     }
 });
@@ -149,6 +156,7 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
         return {
             ...model,
             maze: model.maze.clear(),
+            history: model.history.push(model.maze),
             solving: NotAsked
         };
     }
@@ -177,9 +185,30 @@ const EditCell = Utils.cons(class EditCell implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            solving: NotAsked,
-            maze: model.mode.edit(this.id, model.maze)
+            history: model.multiple ? model.history : model.history.push(model.maze),
+            maze: model.mode.edit(this.id, model.maze),
+            solving: NotAsked
         };
+    }
+});
+
+const Undo = Utils.inst(class Undo implements Msg {
+    public update(model: Model): Model {
+        return model.history.undo().map(([ maze, history ]) => ({
+            ...model,
+            maze,
+            history
+        })).getOrElse(model);
+    }
+});
+
+const Redo = Utils.inst(class Redo implements Msg {
+    public update(model: Model): Model {
+        return model.history.redo().map(([ maze, history ]) => ({
+            ...model,
+            maze,
+            history
+        })).getOrElse(model);
     }
 });
 
@@ -481,6 +510,20 @@ export const View: React.FC<{
             onClick={() => dispatch(Solve)}
         >
             Solve
+        </button>
+
+        <button
+            disabled={!model.history.isUndoable()}
+            onClick={() => dispatch(Undo)}
+        >
+            Undo ←
+        </button>
+
+        <button
+            disabled={!model.history.isReadoable()}
+            onClick={() => dispatch(Redo)}
+        >
+            Redo →
         </button>
     </StyledRoot>
 );
