@@ -67,8 +67,6 @@ export interface Maze {
 
     // D E C O N S T R U C T I O N
 
-    fold<R>(fn: (id: ID, step: Step, acc: R) => R, acc: R): R;
-
     map<T>(fn: (id: ID, step: Step) => T): Array<T>;
 
     setup(): Maybe<Setup>;
@@ -143,6 +141,14 @@ class MazeImpl implements Maze {
         return init(this.rowsCount, this.colsCount);
     }
 
+    // The reason why nested loops are used is that in case
+    // of using single loop and `Dict.get` time compexity is `O(n*log n)`.
+    // But current implementation extract all entries first which takes `O(n)` time.
+    // Then aditional loop to fill "gaps" takes `O(n)` time as well.
+    //
+    // So time complexity is `O(n)`.
+    // It's crucial to map the `Maze` as fast as possible because
+    // each mutation causes rerender of rows*cols amount elements which is a lot.
     public map<T>(fn: (id: ID, step: Step) => T): Array<T> {
         const start = this.start.getOrElse(-1);
         const target = this.target.getOrElse(-1);
@@ -175,27 +181,6 @@ class MazeImpl implements Maze {
 
                 result[ i ] = fn(i++, step);
             }
-        }
-
-        return result;
-    }
-
-    public fold<R>(fn: (id: ID, step: Step, acc: R) => R, acc: R): R {
-        const N = this.rowsCount * this.colsCount;
-        const start = this.start.getOrElse(-1);
-        const target = this.target.getOrElse(-1);
-        let result = acc;
-
-        for (let id = 0; id < N; id++) {
-            result = fn(
-                id,
-                {
-                    starting: id === start,
-                    targeting: id === target,
-                    obstacle: this.obstacles.get(id)
-                },
-                result
-            );
         }
 
         return result;
@@ -289,24 +274,15 @@ const stepToSymbol = (step: Step): string => {
 };
 
 export const serialize = (maze: Maze): string => {
-    const { grid, row } = maze.fold(
-        (_id, step, acc: { grid: Array<string>; row: Array<string> }) => {
-            if (acc.row.length < maze.cols()) {
-                return {
-                    grid: acc.grid,
-                    row: [ ...acc.row, stepToSymbol(step) ]
-                };
-            }
+    const symbols = maze.map((_id, step) => stepToSymbol(step));
+    const lines = new Array(maze.rows());
+    const N = maze.cols();
 
-            return {
-                grid: [ ...acc.grid, acc.row.join('') ],
-                row: [ stepToSymbol(step) ]
-            };
-        },
-        { grid: [], row: [] }
-    );
+    for (let i = 0; i < lines.length; i++) {
+        lines[ i ] = symbols.slice(N * i, N + N * i).join('');
+    }
 
-    return grid.join('\n') + '\n' + row.join('');
+    return lines.join('\n');
 };
 
 type Representation = Readonly<{
