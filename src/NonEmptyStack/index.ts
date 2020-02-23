@@ -1,37 +1,35 @@
+import { Stack, empty } from 'Stack';
+
 export interface NonEmptyStack<T> {
-    push(item: T): NonEmptyStack<T>;
+    push(value: T): NonEmptyStack<T>;
 
     peek(): T;
 
-    toList(): Array<T>;
+    toArray(): Array<T>;
 }
 
-class Node<T> implements NonEmptyStack<T> {
+class NonEmptyStackImpl<T> implements NonEmptyStack<T> {
     public constructor(
-        private readonly value: T,
-        private readonly prev: null | Node<T>
+        private readonly first: T,
+        private readonly rest: Stack<T>
     ) {}
 
-    public push(item: T): NonEmptyStack<T> {
-        return new Node(item, this);
+    public push(value: T): NonEmptyStack<T> {
+        return new NonEmptyStackImpl(this.first, this.rest.push(value));
     }
 
     public peek(): T {
-        return this.value;
+        return this.rest.peek().getOrElse(this.first);
     }
 
-    public toList(): Array<T> {
-        const list = [];
-        let node: null | Node<T> = this;
+    public toArray(): Array<T> {
+        const array = this.rest.toArray();
 
-        while (node !== null) {
-            list.push(node.value);
+        // it's safe to mutate the array here
+        array.unshift(this.first);
 
-            node = node.prev;
-        }
-
-        return list.reverse();
+        return array;
     }
 }
 
-export const init = <T>(initial: T): NonEmptyStack<T> => new Node(initial, null);
+export const init = <T>(initial: T): NonEmptyStack<T> => new NonEmptyStackImpl(initial, empty);

@@ -56,7 +56,7 @@ class Way implements Comparable<Way> {
     }
 
     public getPath(): Path {
-        return this.path.toList();
+        return this.path.toArray();
     }
 }
 
