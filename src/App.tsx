@@ -10,7 +10,7 @@ export interface Model {
 }
 
 export const initial: Model = {
-    grid: Grid.initial(10, 10)
+    grid: Grid.initial(50, 50)
 };
 
 // U P D A T E

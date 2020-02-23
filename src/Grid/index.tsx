@@ -345,20 +345,16 @@ class ViewGrid extends React.PureComponent<{
 
         return (
             <StyledGrid cols={maze.cols()}>
-                {maze.fold((id, step, acc: Array<JSX.Element>) => {
-                    acc.push(
-                        <ViewCell
-                            key={id}
-                            id={id}
-                            multiple={multiple}
-                            inPath={path.member(id)}
-                            step={step}
-                            dispatch={dispatch}
-                        />
-                    );
-
-                    return acc;
-                }, [])}
+                {maze.map((id, step) => (
+                    <ViewCell
+                        key={id}
+                        id={id}
+                        multiple={multiple}
+                        inPath={path.member(id)}
+                        step={step}
+                        dispatch={dispatch}
+                    />
+                ))}
             </StyledGrid>
         );
     }

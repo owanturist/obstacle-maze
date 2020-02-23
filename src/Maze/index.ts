@@ -69,6 +69,8 @@ export interface Maze {
 
     fold<R>(fn: (id: ID, step: Step, acc: R) => R, acc: R): R;
 
+    map<T>(fn: (id: ID, step: Step) => T): Array<T>;
+
     setup(): Maybe<Setup>;
 }
 
@@ -139,6 +141,43 @@ class MazeImpl implements Maze {
 
     public clear(): Maze {
         return init(this.rowsCount, this.colsCount);
+    }
+
+    public map<T>(fn: (id: ID, step: Step) => T): Array<T> {
+        const start = this.start.getOrElse(-1);
+        const target = this.target.getOrElse(-1);
+        const obstacles = this.obstacles.entries();
+
+        const N = this.rowsCount * this.colsCount;
+        const M = obstacles.length;
+        const result = new Array(N);
+
+        let i = 0;
+        let j = 0;
+
+        while (i < N) {
+            while (i < N && (j >= M || i < obstacles[ j ][ 0 ])) {
+                const step: Step = {
+                    starting: i === start,
+                    targeting: i === target,
+                    obstacle: Nothing
+                };
+
+                result[ i ] = fn(i++, step);
+            }
+
+            while (j < M && i >= obstacles[ j ][ 0 ]) {
+                const step: Step = {
+                    starting: i === start,
+                    targeting: i === target,
+                    obstacle: Just(obstacles[ j++ ][ 1 ])
+                };
+
+                result[ i ] = fn(i++, step);
+            }
+        }
+
+        return result;
     }
 
     public fold<R>(fn: (id: ID, step: Step, acc: R) => R, acc: R): R {
