@@ -5,7 +5,6 @@ import Set from 'frctl/Set';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
 import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optional';
 
-import Button from 'Button';
 import * as Maze from 'Maze';
 import * as Solver from 'Maze/Solver';
 import * as Utils from 'Utils';
@@ -402,12 +401,11 @@ export const View: React.FC<{
             _: () => null
         })}
 
-        <Button
-            block
+        <button
             disabled={model.solving.isLoading()}
             onClick={() => dispatch(Solve)}
         >
             Solve
-        </Button>
+        </button>
     </StyledRoot>
 );

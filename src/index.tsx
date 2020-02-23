@@ -14,8 +14,8 @@ ReactDOM.render(
         <Provider
             init={[ App.initial, Cmd.none ]}
             update={(msg: App.Msg, model: App.Model) => [ msg.update(model), Cmd.none ]}
-            view={App.View}
             subscription={() => Sub.none}
+            view={App.View}
         />
     ),
     document.getElementById('root')
