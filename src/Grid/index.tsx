@@ -7,7 +7,7 @@ import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optiona
 
 import {
     History,
-    empty as emptyHistory
+    init as initHistory
 } from 'History';
 import * as Maze from 'Maze';
 import * as Solver from 'Maze/Solver';
@@ -101,15 +101,13 @@ export type Model = Readonly<{
     mode: Mode;
     multiple: Maybe<Maze.Maze>;
     history: History<Maze.Maze>;
-    maze: Maze.Maze;
     solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
 }>;
 
 export const initial = (rows: number, cols: number): Model => ({
     mode: AddObstacle(Maze.Obstacle.Wall),
     multiple: Nothing,
-    history: emptyHistory,
-    maze: Maze.init(rows, cols),
+    history: initHistory(Maze.init(rows, cols)),
     solving: NotAsked
 });
 
@@ -134,8 +132,7 @@ const StartMultiple = Utils.cons(class StartMultiple implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            multiple: Just(model.maze), // keep maze to push into history
-            maze: model.mode.edit(this.id, model.maze),
+            multiple: Just(model.mode.edit(this.id, model.history.getCurrent())), // keep maze to apply multiple edits
             solving: NotAsked
         };
     }
@@ -146,7 +143,7 @@ const StopMultiple = Utils.inst(class StopMultiple implements Msg {
         return {
             ...model,
             multiple: Nothing,
-            history: model.history.push(model.multiple.getOrElse(model.maze))
+            history: model.multiple.map(maze => model.history.push(maze)).getOrElse(model.history)
         };
     }
 });
@@ -155,8 +152,7 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
     public update(model: Model): Model {
         return {
             ...model,
-            maze: model.maze.clear(),
-            history: model.history.push(model.maze),
+            history: model.history.push(model.history.getCurrent().clear()),
             solving: NotAsked
         };
     }
@@ -164,13 +160,15 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
 
 const Solve = Utils.inst(class Solve implements Msg {
     public update(model: Model): Model {
+        const maze = model.history.getCurrent();
+
         return {
             ...model,
-            solving: model.maze.setup().cata({
+            solving: maze.setup().cata({
                 Nothing: () => Failure('Please setup both starting and targeting locations'),
 
                 Just: setup => Solver.solve(setup).map(path => {
-                    const cols = model.maze.cols();
+                    const cols = maze.cols();
 
                     return Set.fromList(path.map(([ row, col ]) => row * cols + col));
                 }).tap<RemoteData<string, Maybe<Set<Maze.ID>>>>(Succeed)
@@ -183,32 +181,39 @@ const EditCell = Utils.cons(class EditCell implements Msg {
     public constructor(private readonly id: Maze.ID) {}
 
     public update(model: Model): Model {
-        return {
-            ...model,
-            maze: model.mode.edit(this.id, model.maze),
-            history: model.multiple.isJust() ? model.history : model.history.push(model.maze),
-            solving: NotAsked
-        };
+        return model.multiple.fold(
+            () => ({
+                ...model,
+                history: model.history.push(model.mode.edit(this.id, model.history.getCurrent())),
+                solving: NotAsked
+            }),
+
+            maze => ({
+                ...model,
+                multiple: Just(model.mode.edit(this.id, maze)),
+                solving: NotAsked
+            })
+        );
     }
 });
 
 const Undo = Utils.inst(class Undo implements Msg {
     public update(model: Model): Model {
-        return model.history.undo().map(([ maze, history ]) => ({
+        return model.history.undo().map(history => ({
             ...model,
-            maze,
-            history
-        })).getOrElse(model);
+            history,
+            solving: NotAsked
+        } as Model)).getOrElse(model);
     }
 });
 
 const Redo = Utils.inst(class Redo implements Msg {
     public update(model: Model): Model {
-        return model.history.redo().map(([ maze, history ]) => ({
+        return model.history.redo().map(history => ({
             ...model,
-            maze,
-            history
-        })).getOrElse(model);
+            history,
+            solving: NotAsked
+        } as Model)).getOrElse(model);
     }
 });
 
@@ -489,7 +494,7 @@ export const View: React.FC<{
         <ViewGrid
             multiple={model.multiple.isJust()}
             mode={model.mode}
-            maze={model.maze}
+            maze={model.multiple.getOrElse(model.history.getCurrent())}
             path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
             dispatch={dispatch}
         />

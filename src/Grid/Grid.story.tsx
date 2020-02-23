@@ -25,37 +25,37 @@ export const Initial = () => (
 
 export const WithObstacles = () => {
     const initialModel = Grid.initial(20, 20);
-    const model = {
-        ...initialModel,
-        maze: initialModel.maze
-            .setStart(0)
+    const maze = initialModel.history.getCurrent()
+        .setStart(0)
 
-            .setObstacle(21, Obstacle.Wall)
-            .setObstacle(22, Obstacle.Wall)
-            .setObstacle(23, Obstacle.Wall)
-            .setObstacle(24, Obstacle.Wall)
+        .setObstacle(21, Obstacle.Wall)
+        .setObstacle(22, Obstacle.Wall)
+        .setObstacle(23, Obstacle.Wall)
+        .setObstacle(24, Obstacle.Wall)
 
-            .setObstacle(41, Obstacle.Gravel)
-            .setObstacle(42, Obstacle.Gravel)
-            .setObstacle(43, Obstacle.Gravel)
-            .setObstacle(44, Obstacle.Gravel)
+        .setObstacle(41, Obstacle.Gravel)
+        .setObstacle(42, Obstacle.Gravel)
+        .setObstacle(43, Obstacle.Gravel)
+        .setObstacle(44, Obstacle.Gravel)
 
-            .setObstacle(61, Obstacle.PortalIn)
-            .setObstacle(62, Obstacle.PortalIn)
-            .setObstacle(63, Obstacle.PortalIn)
-            .setObstacle(64, Obstacle.PortalIn)
+        .setObstacle(61, Obstacle.PortalIn)
+        .setObstacle(62, Obstacle.PortalIn)
+        .setObstacle(63, Obstacle.PortalIn)
+        .setObstacle(64, Obstacle.PortalIn)
 
-            .setObstacle(81, Obstacle.PortalOut)
-            .setObstacle(82, Obstacle.PortalOut)
-            .setObstacle(83, Obstacle.PortalOut)
-            .setObstacle(84, Obstacle.PortalOut)
+        .setObstacle(81, Obstacle.PortalOut)
+        .setObstacle(82, Obstacle.PortalOut)
+        .setObstacle(83, Obstacle.PortalOut)
+        .setObstacle(84, Obstacle.PortalOut)
 
-            .setTarget(105)
-    };
+        .setTarget(105);
 
     return (
         <Grid.View
-            model={model}
+            model={{
+                ...initialModel,
+                history: initialModel.history.push(maze)
+            }}
             dispatch={action('Dispatch')}
         />
     );

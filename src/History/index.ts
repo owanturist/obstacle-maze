@@ -8,15 +8,17 @@ import {
 export interface History<T> {
     isUndoable(): boolean;
     isReadoable(): boolean;
+    getCurrent(): T;
 
     push(step: T): History<T>;
 
-    undo(): Maybe<[ T, History<T> ]>;
-    redo(): Maybe<[ T, History<T> ]>;
+    undo(): Maybe<History<T>>;
+    redo(): Maybe<History<T>>;
 }
 
 class HistoryImpl<T> implements History<T> {
     public constructor(
+        private readonly current: T,
         private readonly done: Stack<T>,
         private readonly undone: Stack<T>
     ) {}
@@ -29,32 +31,29 @@ class HistoryImpl<T> implements History<T> {
         return !this.undone.isEmpty();
     }
 
+    public getCurrent(): T {
+        return this.current;
+    }
+
     public push(step: T): History<T> {
         return new HistoryImpl(
-            this.done.push(step),
+            step,
+            this.done.push(this.current),
             emptyStack
         );
     }
 
-    public undo(): Maybe<[ T, History<T> ]> {
-        return this.done.pop().map(([ step, nextDone ]) => [
-            step,
-            new HistoryImpl(
-                nextDone,
-                this.undone.push(step)
-            )
-        ]);
+    public undo(): Maybe<History<T>> {
+        return this.done.pop().map(
+            ([ nextCurrent, nextDone ]) => new HistoryImpl(nextCurrent, nextDone, this.undone.push(this.current))
+        );
     }
 
-    public redo(): Maybe<[ T, History<T> ]> {
-        return this.undone.pop().map(([ step, nextUndone ]) => [
-            step,
-            new HistoryImpl(
-                this.done.push(step),
-                nextUndone
-            )
-        ]);
+    public redo(): Maybe<History<T>> {
+        return this.undone.pop().map(
+            ([ nextCurrent, nextUndone ]) => new HistoryImpl(nextCurrent, this.done.push(this.current), nextUndone)
+        );
     }
 }
 
-export const empty: History<never> = new HistoryImpl(emptyStack, emptyStack);
+export const init = <T>(initial: T): History<T> => new HistoryImpl(initial, emptyStack, emptyStack);

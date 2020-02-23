@@ -1,63 +1,73 @@
 import Maybe from 'frctl/Maybe';
 
-import { History, empty } from 'History';
-
-const first = <T1, T2>(tuple: [ T1, T2 ]): T1 => tuple[ 0 ];
-const second = <T1, T2>(tuple: [ T1, T2 ]): T2 => tuple[ 1 ];
+import { init } from 'History';
 
 describe('History', () => {
     it('empty', () => {
-        expect(empty.isReadoable()).toBe(false);
-        expect(empty.isUndoable()).toBe(false);
-        expect(empty.undo()).toEqual(Maybe.Nothing);
-        expect(empty.redo()).toEqual(Maybe.Nothing);
+        const _0 = init(0);
+
+        expect(_0.isUndoable()).toBe(false);
+        expect(_0.isReadoable()).toBe(false);
+        expect(_0.getCurrent()).toBe(0);
+        expect(_0.undo()).toEqual(Maybe.Nothing);
+        expect(_0.redo()).toEqual(Maybe.Nothing);
     });
 
     it('push single + undo - redo', () => {
-        const _0 = (empty as History<number>).push(0);
-        expect(_0.isReadoable()).toBe(false);
+        const _0 = init(0).push(1);
         expect(_0.isUndoable()).toBe(true);
+        expect(_0.isReadoable()).toBe(false);
+        expect(_0.getCurrent()).toBe(1);
+        expect(_0.undo()).not.toEqual(Maybe.Nothing);
         expect(_0.redo()).toEqual(Maybe.Nothing);
-        expect(_0.undo().map(first)).toEqual(Maybe.Just(0));
 
-        const _1 = _0.undo().map(second).getOrElse(empty);
-        expect(_1.isReadoable()).toBe(true);
+        const _1 = _0.undo().getOrElse(init(-1));
         expect(_1.isUndoable()).toBe(false);
+        expect(_1.isReadoable()).toBe(true);
+        expect(_1.getCurrent()).toBe(0);
         expect(_1.undo()).toEqual(Maybe.Nothing);
-        expect(_1.redo()).toEqual(Maybe.Just([ 0, _0 ]));
+        expect(_1.redo()).not.toEqual(Maybe.Nothing);
+        expect(_1.redo()).toEqual(Maybe.Just(_0));
     });
 
     it('push several + undo - redo', () => {
-        const _0 = (empty as History<number>).push(0).push(1).push(2);
-        expect(_0.isReadoable()).toBe(false);
+        const _0 = init(0).push(1).push(2).push(3);
         expect(_0.isUndoable()).toBe(true);
+        expect(_0.isReadoable()).toBe(false);
+        expect(_0.getCurrent()).toBe(3);
+        expect(_0.undo()).not.toEqual(Maybe.Nothing);
         expect(_0.redo()).toEqual(Maybe.Nothing);
-        expect(_0.undo().map(first)).toEqual(Maybe.Just(2));
 
-        const _1 = _0.undo().map(second).getOrElse(empty);
-        expect(_1.isReadoable()).toBe(true);
+        const _1 = _0.undo().getOrElse(init(-1));
         expect(_1.isUndoable()).toBe(true);
-        expect(_1.redo()).toEqual(Maybe.Just([ 2, _0 ]));
-        expect(_1.undo().map(first)).toEqual(Maybe.Just(1));
+        expect(_1.isReadoable()).toBe(true);
+        expect(_1.getCurrent()).toBe(2);
+        expect(_1.undo()).not.toEqual(Maybe.Nothing);
+        expect(_1.redo()).not.toEqual(Maybe.Nothing);
+        expect(_1.redo()).toEqual(Maybe.Just(_0));
 
-        const _2 = _1.undo().map(second).getOrElse(empty);
-        expect(_2.isReadoable()).toBe(true);
+        const _2 = _1.undo().getOrElse(init(-1));
         expect(_2.isUndoable()).toBe(true);
-        expect(_2.redo()).toEqual(Maybe.Just([ 1, _1 ]));
-        expect(_2.undo().map(first)).toEqual(Maybe.Just(0));
+        expect(_2.isReadoable()).toBe(true);
+        expect(_2.getCurrent()).toBe(1);
+        expect(_2.undo()).not.toEqual(Maybe.Nothing);
+        expect(_2.redo()).not.toEqual(Maybe.Nothing);
+        expect(_2.redo()).toEqual(Maybe.Just(_1));
 
-        const _3 = _2.undo().map(second).getOrElse(empty);
-        expect(_3.isReadoable()).toBe(true);
+        const _3 = _2.undo().getOrElse(init(-1));
         expect(_3.isUndoable()).toBe(false);
-        expect(_3.redo()).toEqual(Maybe.Just([ 0, _2 ]));
-        expect(_3.undo().map(first)).toEqual(Maybe.Nothing);
+        expect(_3.isReadoable()).toBe(true);
+        expect(_3.getCurrent()).toBe(0);
+        expect(_3.undo()).toEqual(Maybe.Nothing);
+        expect(_3.redo()).not.toEqual(Maybe.Nothing);
+        expect(_3.redo()).toEqual(Maybe.Just(_2));
 
-        // empty, but reduable ^
+        // singleton, but reduable ^
 
-        const _4 = _3.push(3);
-        expect(_4.isReadoable()).toBe(false);
+        const _4 = _3.push(4);
         expect(_4.isUndoable()).toBe(true);
+        expect(_4.isReadoable()).toBe(false); // clears redos
+        expect(_4.undo()).not.toEqual(Maybe.Nothing);
         expect(_4.redo()).toEqual(Maybe.Nothing);
-        expect(_4.undo().map(first)).toEqual(Maybe.Just(3));
     });
 });
