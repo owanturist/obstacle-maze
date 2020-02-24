@@ -186,13 +186,19 @@ const Solve = Utils.inst(class Solve implements Msg {
 
         return maze.setup().cata({
             Nothing: () => [
-                model,
+                {
+                    ...model,
+                    solution: Nothing
+                },
                 Toast.warning('Please setup both starting and targeting locations').show()
             ],
 
             Just: setup => Solver.solve(setup).cata({
                 Nothing: () => [
-                    model,
+                    {
+                        ...model,
+                        solution: Nothing
+                    },
                     Toast.info('There is not path between starting and targeting locations').show()
                 ],
 
