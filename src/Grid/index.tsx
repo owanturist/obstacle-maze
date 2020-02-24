@@ -16,18 +16,18 @@ import * as Maze from 'Maze';
 import * as Solver from 'Maze/Solver';
 import * as Utils from 'Utils';
 
-import wallImage from './wall.svg';
-import gravelImage from './gravel.svg';
-import portalInImage from './portal_in.svg';
-import portalOutImage from './portal_out.svg';
-import startingLocationImage from './starting_location.svg';
-import targetingLocationImage from './targeting_location.svg';
-import findPathImage from './find_path.svg';
-import startOverImage from './start_over.svg';
-import saveImage from './save.svg';
-import undoImage from './undo.svg';
-import redoImage from './redo.svg';
-import emptyImage from './empty.svg';
+import wallImage from './media/wall.svg';
+import gravelImage from './media/gravel.svg';
+import portalInImage from './media/portal_in.svg';
+import portalOutImage from './media/portal_out.svg';
+import startingLocationImage from './media/starting_location.svg';
+import targetingLocationImage from './media/targeting_location.svg';
+import findPathImage from './media/find_path.svg';
+import startOverImage from './media/start_over.svg';
+import saveImage from './media/save.svg';
+import undoImage from './media/undo.svg';
+import redoImage from './media/redo.svg';
+import emptyImage from './media/empty.svg';
 
 // M O D E L
 
