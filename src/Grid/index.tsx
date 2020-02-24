@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { Dispatch } from 'Provider';
 import { Cmd } from 'frctl';
 import Set from 'frctl/Set';
@@ -264,7 +264,8 @@ const SaveAsFile = Utils.inst(class SaveAsFile implements Msg {
 // V I E W
 
 interface StyledCellProps {
-    inPath: boolean;
+    static?: boolean;
+    inPath?: boolean;
     background: string;
 }
 
@@ -272,7 +273,6 @@ const StyledCell = styled.div<StyledCellProps>`
     position: relative;
     box-sizing: border-box;
     padding: 0.5px;
-    cursor: pointer;
 
     &:before {
         content: "";
@@ -282,9 +282,14 @@ const StyledCell = styled.div<StyledCellProps>`
         box-shadow: ${props => props.inPath && '0 0 2px 2px #9b59b6 inset'};
     }
 
-    &:hover:before {
-        background: #7f8c8d;
-    }
+
+    ${props => !props.static && `
+        cursor: pointer;
+
+        &:hover:before {
+            background: #7f8c8d;
+        }
+    `};
 `;
 
 interface ViewCellProps {
@@ -582,3 +587,25 @@ export const View: React.FC<{
         </button>
     </StyledRoot>
 );
+
+interface PreviewProps {
+    cols: number;
+    rows: number;
+}
+
+export class Preview extends React.PureComponent<PreviewProps> {
+    public render() {
+        const { cols, rows } = this.props;
+        const cells: Array<JSX.Element> = new Array(cols * rows);
+
+        for (let i = 0; i < cells.length; i++) {
+            cells[ i ] = (
+                <StyledCell key={i} static background="#ecf0f1" />
+            );
+        }
+
+        return (
+            <StyledGrid cols={cols} children={cells} />
+        );
+    }
+}
