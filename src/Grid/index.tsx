@@ -302,7 +302,7 @@ const StyledCell = styled.div<StyledCellProps>`
         background-position: center center;
         background-repeat: no-repeat;
         border-radius: 3px;
-        box-shadow: ${props => props.inPath && '0 0 2px 2px #9b59b6 inset'};
+        box-shadow: ${props => props.inPath && '0 0 0 1px #3498db inset'};
     }
 
 
@@ -460,7 +460,7 @@ const StyledTool = styled.button<StyledToolProps>`
     background-position: center center;
     background-repeat: no-repeat;
     border-radius: 3px;
-    border: 1px solid ${props => props.active ? '#2ecc71' : '#ddd'};
+    border: 1px solid ${props => props.active ? '#3498db' : '#ddd'};
     outline: none;
     cursor: pointer;
 
@@ -469,7 +469,7 @@ const StyledTool = styled.button<StyledToolProps>`
     }
 
     &:focus {
-        box-shadow: 0 0 0 2px ${props => props.active ? 'rgba(46, 204, 113, 0.3)' : 'rgba(0, 0, 0, 0.05)'};
+        box-shadow: 0 0 0 2px ${props => props.active ? 'rgba(52, 152, 219, .3)' : 'rgba(0, 0, 0, 0.05)'};
     }
 
     &:hover {

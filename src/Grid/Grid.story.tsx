@@ -6,7 +6,7 @@ import Maybe from 'frctl/Maybe';
 import RemoteData from 'frctl/RemoteData/Optional';
 
 import * as Grid from './index';
-import { Obstacle } from 'Maze';
+import { deserialize, Obstacle } from 'Maze';
 
 export default {
     title: 'Grid',
@@ -122,8 +122,33 @@ export const NoPath = () => {
 
 
 export const FoundPath = () => {
-    const initialModel = Grid.initEmpty(20, 20);
-    const path = Knobs.array('Path', [ '21', '22', '23', '43' ], ' ').filter(Boolean).map(Number);
+    const initialModel = deserialize(`
+o;###################
+;;;;;;;;#...........#
+#;#######.#.###.#.#.#
+#.......#.#.#...#.#.#
+###.#.#.#.#######.###
+#...#.#.....#.......#
+#.#.###.#.#########.#
+#.#...#.#.*.#...#.#.#
+#.#.#.#####.###.#.###
+#.#.#...#......@....#
+###########.###.###.#
+#.......#.....#.#.#.#
+#.###.#########.#.###
+#...#.#.....#.....#.#
+#.###.#.###.###.###.#
+#.#.....#.#.........#
+###.#####.###.###.###
+#...#...#.....#...#.#
+#.#.#.#.###.#####.#.#
+#.#...#...#.....#;;;;
+###################;x
+    `.trim()).map(Grid.initWithMaze).getOrElse(Grid.initEmpty(21, 21));
+
+    const initialPath = [ 0, 1, 22, 43, 64, 65, 66, 67, 68, 69, 70, 91, 112, 113, 114, 135, 156, 157, 158, 179, 200, 201, 202, 203, 204, 225, 246, 267, 288, 309, 330, 331, 332, 353, 374, 395, 416, 417, 418, 419, 440 ];
+
+    const path = Knobs.array('Path', initialPath.map(String), ' ').filter(Boolean).map(Number);
 
     const model = {
         ...initialModel,

@@ -42,3 +42,13 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## Generate random maze
+
+Go to [maze generator](https://www.dcode.fr/maze-generator) and follow steps:
+1. Set width
+1. Set height
+1. Choose "USE THIS CHARACTER FOR WALLS" and set `#`
+1. Choose "USE THIS CHARACTER FOR PATHS" and set `.`
+1. Choose "SINGLE CHARARACTER (MORE RECTANGULAR)"
+1. Generate
