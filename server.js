@@ -12,5 +12,5 @@ const server = new StaticServer({
 });
 
 server.start(() => {
-    console.log('Server listening to', server.port);
+    console.log(`The app running in the browser http://localhost:${server.port}`);
 });
