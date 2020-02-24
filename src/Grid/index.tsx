@@ -387,6 +387,11 @@ class ViewCell extends React.Component<ViewCellProps> {
     }
 }
 
+const StyledScroller = styled.div`
+    flex: 1 1 auto;
+    overflow: auto;
+`;
+
 interface StyledGridProps {
     cols: number;
 }
@@ -550,6 +555,7 @@ const StyledToolGroup = styled.div`
 const StyledToolbar = styled.div`
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
     padding: 10px;
     background: #fff;
     box-shadow: 5px 0 5px -5px rgba(0, 0, 0, 0.1);
@@ -614,6 +620,8 @@ const StyledError = styled.div`
 const StyledRoot = styled.div`
     display: flex;
     flex-flow: row nowrap;
+    height: 100%;
+    min-height: 100%;
 `;
 
 export const View: React.FC<{
@@ -626,12 +634,14 @@ export const View: React.FC<{
             dispatch={dispatch}
         />
 
-        <ViewGrid
-            multiple={model.multiple.isJust()}
-            maze={model.multiple.getOrElse(model.history.getCurrent())}
-            path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
-            dispatch={dispatch}
-        />
+        <StyledScroller>
+            <ViewGrid
+                multiple={model.multiple.isJust()}
+                maze={model.multiple.getOrElse(model.history.getCurrent())}
+                path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
+                dispatch={dispatch}
+            />
+        </StyledScroller>
 
         {model.solving.cata({
             Failure: error => (
