@@ -370,11 +370,15 @@ export const deserialize = (input: string): Either<string, Maze> => {
     const symbols: Array<string> = [];
 
     for (const row of rows) {
-        if (row.length !== N) {
-            return Left(`It expects rows the same size "${N}" but got "${row.length}" instead`);
+        let i = 0;
+
+        while (i < row.length) {
+            symbols.push(row[ i++ ]);
         }
 
-        symbols.push(...row.split(''));
+        while (i++ < N) {
+            symbols.push(SYMBOL_PATH);
+        }
     }
 
     return symbols.reduce(

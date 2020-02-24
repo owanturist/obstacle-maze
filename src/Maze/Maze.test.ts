@@ -25,9 +25,7 @@ describe('Maze.deserialize()', () => {
 ...
 ...
 ..
-        `.trim())).toEqual(
-            Either.Left('It expects rows the same size "3" but got "2" instead')
-        );
+        `.trim())).toEqual(Either.Right(Maze.init(3, 3)));
 
         expect(Maze.deserialize(`
 ox.
