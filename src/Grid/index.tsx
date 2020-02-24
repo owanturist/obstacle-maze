@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { Dispatch } from 'Provider';
 import { Cmd } from 'frctl';
 import Set from 'frctl/Set';
@@ -14,6 +14,13 @@ import * as File from 'File';
 import * as Maze from 'Maze';
 import * as Solver from 'Maze/Solver';
 import * as Utils from 'Utils';
+
+import wallImage from './wall.svg';
+import gravelImage from './gravel.svg';
+import portalInImage from './portal_in.svg';
+import portalOutImage from './portal_out.svg';
+import startingLocation from './starting_location.svg';
+import targetingLocationImage from './targeting_location.svg';
 
 // M O D E L
 
@@ -268,7 +275,7 @@ const SaveAsFile = Utils.inst(class SaveAsFile implements Msg {
 interface StyledCellProps {
     static?: boolean;
     inPath?: boolean;
-    background: string;
+    image: Maybe<string>;
 }
 
 const StyledCell = styled.div<StyledCellProps>`
@@ -280,16 +287,23 @@ const StyledCell = styled.div<StyledCellProps>`
         content: "";
         display: block;
         padding-top: 100%;
-        background: ${props => props.background};
+        background-color: rgba(0, 0, 0, 0.05);
+        background-image: ${props => props.image.fold(
+            () => null,
+            image => `url(${image})`
+        )};
         box-shadow: ${props => props.inPath && '0 0 2px 2px #9b59b6 inset'};
+        background-size: 90% 90%;
+        background-position: center center;
+        background-repeat: no-repeat;
     }
 
 
-    ${props => !props.static && `
+    ${props => !props.static && css`
         cursor: pointer;
 
         &:hover:before {
-            background: #7f8c8d;
+            background-color: rgba(0, 0, 0, 0.1);
         }
     `};
 `;
@@ -302,24 +316,24 @@ interface ViewCellProps {
 }
 
 class ViewCell extends React.Component<ViewCellProps> {
-    private getBackground(): string {
+    private getImage(): Maybe<string> {
         if (this.props.step.starting) {
-            return '#e74c3c';
+            return Just(startingLocation);
         }
 
         if (this.props.step.targeting) {
-            return '#2ecc71';
+            return Just(targetingLocationImage);
         }
 
         // eslint-disable-next-line array-callback-return
         return this.props.step.obstacle.map((obstacle): string => {
             switch (obstacle) {
-                case Maze.Obstacle.Wall:      return '#2c3e50';
-                case Maze.Obstacle.Gravel:    return '#bdc3c7';
-                case Maze.Obstacle.PortalIn:  return '#3498db';
-                case Maze.Obstacle.PortalOut: return '#e67e22';
+                case Maze.Obstacle.Wall:      return wallImage;
+                case Maze.Obstacle.Gravel:    return gravelImage;
+                case Maze.Obstacle.PortalIn:  return portalInImage;
+                case Maze.Obstacle.PortalOut: return portalOutImage;
             }
-        }).getOrElse('#ecf0f1');
+        });
     }
 
     private readonly onMouseDown = () => {
@@ -357,7 +371,7 @@ class ViewCell extends React.Component<ViewCellProps> {
         return (
             <StyledCell
                 inPath={this.props.inPath}
-                background={this.getBackground()}
+                image={this.getImage()}
                 onMouseDown={this.onMouseDown}
                 onMouseEnter={this.onMouseEnter}
                 onMouseUp={this.onMouseUp}
@@ -374,7 +388,7 @@ const StyledGrid = styled.div<StyledGridProps>`
     display: flex;
     flex-flow: row wrap;
     margin-top: 10px;
-    width: ${props => 16 * props.cols}px;
+    width: ${props => 30 * props.cols}px;
     min-width: 480px;
     max-width: 100%;
 
@@ -602,7 +616,7 @@ export class Preview extends React.PureComponent<PreviewProps> {
 
         for (let i = 0; i < cells.length; i++) {
             cells[ i ] = (
-                <StyledCell key={i} static background="#ecf0f1" />
+                <StyledCell key={i} static image={Nothing} />
             );
         }
 
