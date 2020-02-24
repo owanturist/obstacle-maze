@@ -19,9 +19,11 @@ const StyledRoot = styled.div<StyledRootProps>`
 `;
 
 const StyledContent = styled.div`
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
     min-height: 300px;
     border-radius: 3px;
     border: 2px dashed #aaa;

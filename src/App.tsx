@@ -1,4 +1,5 @@
 import React from 'react';
+import styled from 'styled-components';
 import { Dispatch } from 'Provider';
 import { Cmd } from 'frctl';
 import { Cata } from 'frctl/Basics';
@@ -102,6 +103,29 @@ const GridMsg = Utils.cons(class GridMsg$ implements Msg {
 
 // V I E W
 
+const StyledGridScreenRoot = styled.div`
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    background: #f8f8f8;
+`;
+
+const StyledGridScreen = styled.div`
+    box-sizing: border-box;
+    padding: 20px;
+    width: 480px;
+    max-width: 100%;
+    max-height: 100%;
+    background: #fff;
+    border-radius: 3px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+`;
+
 export class View extends React.PureComponent<{
     model: Model;
     dispatch: Dispatch<Msg>;
@@ -117,10 +141,14 @@ export class View extends React.PureComponent<{
     public render() {
         return this.props.model.screen.cata({
             ConfiguratorScreen: configurator => (
-                <Configurator.View
-                    model={configurator}
-                    dispatch={this.configuratorDispatch}
-                />
+                <StyledGridScreenRoot>
+                    <StyledGridScreen>
+                        <Configurator.View
+                            model={configurator}
+                            dispatch={this.configuratorDispatch}
+                        />
+                    </StyledGridScreen>
+                </StyledGridScreenRoot>
             ),
 
             GridScreen: grid => (
