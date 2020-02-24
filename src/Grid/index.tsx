@@ -19,8 +19,14 @@ import wallImage from './wall.svg';
 import gravelImage from './gravel.svg';
 import portalInImage from './portal_in.svg';
 import portalOutImage from './portal_out.svg';
-import startingLocation from './starting_location.svg';
+import startingLocationImage from './starting_location.svg';
 import targetingLocationImage from './targeting_location.svg';
+import findPathImage from './find_path.svg';
+import startOverImage from './start_over.svg';
+import saveImage from './save.svg';
+import undoImage from './undo.svg';
+import redoImage from './redo.svg';
+import emptyImage from './empty.svg';
 
 // M O D E L
 
@@ -281,21 +287,22 @@ interface StyledCellProps {
 const StyledCell = styled.div<StyledCellProps>`
     position: relative;
     box-sizing: border-box;
-    padding: 0.5px;
+    padding: 0 1px 1px 0;
 
     &:before {
         content: "";
         display: block;
         padding-top: 100%;
-        background-color: rgba(0, 0, 0, 0.05);
+        background-color: #f4f4f4;
         background-image: ${props => props.image.fold(
             () => null,
             image => `url(${image})`
         )};
-        box-shadow: ${props => props.inPath && '0 0 2px 2px #9b59b6 inset'};
-        background-size: 90% 90%;
+        background-size: 80%;
         background-position: center center;
         background-repeat: no-repeat;
+        border-radius: 3px;
+        box-shadow: ${props => props.inPath && '0 0 2px 2px #9b59b6 inset'};
     }
 
 
@@ -303,7 +310,7 @@ const StyledCell = styled.div<StyledCellProps>`
         cursor: pointer;
 
         &:hover:before {
-            background-color: rgba(0, 0, 0, 0.1);
+            background-color: #e8e8e8;
         }
     `};
 `;
@@ -318,7 +325,7 @@ interface ViewCellProps {
 class ViewCell extends React.Component<ViewCellProps> {
     private getImage(): Maybe<string> {
         if (this.props.step.starting) {
-            return Just(startingLocation);
+            return Just(startingLocationImage);
         }
 
         if (this.props.step.targeting) {
@@ -387,7 +394,7 @@ interface StyledGridProps {
 const StyledGrid = styled.div<StyledGridProps>`
     display: flex;
     flex-flow: row wrap;
-    margin-top: 10px;
+    margin-left: 10px;
     width: ${props => 30 * props.cols}px;
     min-width: 480px;
     max-width: 100%;
@@ -433,30 +440,41 @@ class ViewGrid extends React.PureComponent<ViewGridProps> {
     }
 }
 
-const StyledToolbar = styled.div`
-    display: flex;
-    flex-flow: row nowrap;
-    margin-left: -10px;
-`;
-
 interface StyledToolProps {
     active?: boolean;
-    background: string;
+    image: string;
 }
 
-const StyledTool = styled.div<StyledToolProps>`
+const StyledTool = styled.button<StyledToolProps>`
     display: flex;
-    margin-left: 10px;
-    width: 48px;
-    height: 48px;
-    background: ${props => props.background};
-    box-shadow: ${props => props.active && '0 0 0 4px #7f8c8d inset'};
+    width: 36px;
+    height: 36px;
+    background-color: #fff;
+    background-image: ${props => `url(${props.image})`};
+    background-size: 80%;
+    background-position: center center;
+    background-repeat: no-repeat;
+    border-radius: 3px;
+    border: 1px solid ${props => props.active ? '#2ecc71' : '#ddd'};
+    outline: none;
     cursor: pointer;
+
+    & + & {
+        margin-top: 5px;
+    }
+
+    &:focus {
+        box-shadow: 0 0 0 2px ${props => props.active ? 'rgba(46, 204, 113, 0.3)' : 'rgba(0, 0, 0, 0.05)'};
+    }
+
+    &:hover {
+        background-color: #f4f4f4;
+    }
 `;
 
 type Tool = Readonly<{
     title: string;
-    color: string;
+    image: string;
     mode: Mode;
 }>;
 
@@ -478,9 +496,11 @@ class ViewTool extends React.PureComponent<{
     public render() {
         return (
             <StyledTool
+                type="button"
+                tabIndex={0}
                 title={this.props.tool.title}
                 active={this.isActive()}
-                background={this.props.tool.color}
+                image={this.props.tool.image}
                 onClick={this.onClick}
             />
         );
@@ -490,54 +510,100 @@ class ViewTool extends React.PureComponent<{
 const TOOLS: Array<Tool> = [
     {
         title: 'Add wall',
-        color: '#2c3e50',
+        image: wallImage,
         mode: AddObstacle(Maze.Obstacle.Wall)
     }, {
         title: 'Add gravel',
-        color: '#bdc3c7',
+        image: gravelImage,
         mode: AddObstacle(Maze.Obstacle.Gravel)
     }, {
         title: 'Add portal in',
-        color: '#3498db',
+        image: portalInImage,
         mode: AddObstacle(Maze.Obstacle.PortalIn)
     }, {
         title: 'Add portal out',
-        color: '#e67e22',
+        image: portalOutImage,
         mode: AddObstacle(Maze.Obstacle.PortalOut)
     }, {
+        title: 'Clear cell',
+        image: emptyImage,
+        mode: ClearCell
+    }, {
         title: 'Set starting location',
-        color: '#e74c3c',
+        image: startingLocationImage,
         mode: SetStart
     }, {
         title: 'Set targeting location',
-        color: '#2ecc71',
+        image: targetingLocationImage,
         mode: SetTarget
-    }, {
-        title: 'Clear cell',
-        color: '#ecf0f1',
-        mode: ClearCell
     }
 ];
+
+const StyledToolGroup = styled.div`
+    & + & {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #ddd;
+    }
+`;
+
+const StyledToolbar = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background: #fff;
+    box-shadow: 5px 0 5px -5px rgba(0, 0, 0, 0.1);
+`;
 
 const ViewToolbar: React.FC<{
     mode: Mode;
     dispatch: Dispatch<Msg>;
 }> = ({ mode, dispatch }) => (
     <StyledToolbar>
-        {TOOLS.map(tool => (
-            <ViewTool
-                key={tool.title}
-                tool={tool}
-                mode={mode}
-                dispatch={dispatch}
+        <StyledToolGroup>
+            <StyledTool
+                title="Start over"
+                image={startOverImage}
+                onClick={() => dispatch(ClearMaze)}
             />
-        ))}
 
-        <StyledTool
-            title="Remove all"
-            background="#ecf0f1"
-            onClick={() => dispatch(ClearMaze)}
-        />
+            <StyledTool
+                title="Save as file"
+                image={saveImage}
+                onClick={() => dispatch(SaveAsFile)}
+            />
+
+            <StyledTool
+                title="Undo"
+                image={undoImage}
+                onClick={() => dispatch(Undo)}
+            />
+
+            <StyledTool
+                title="Redo"
+                image={redoImage}
+                onClick={() => dispatch(Redo)}
+            />
+        </StyledToolGroup>
+
+        <StyledToolGroup>
+            {TOOLS.map(tool => (
+                <ViewTool
+                    key={tool.title}
+                    tool={tool}
+                    mode={mode}
+                    dispatch={dispatch}
+                />
+            ))}
+        </StyledToolGroup>
+
+        <StyledToolGroup>
+            <StyledTool
+                title="Find path"
+                image={findPathImage}
+                onClick={() => dispatch(Solve)}
+            />
+        </StyledToolGroup>
     </StyledToolbar>
 );
 
@@ -545,7 +611,10 @@ const StyledError = styled.div`
     color: #c0392b;
 `;
 
-const StyledRoot = styled.div``;
+const StyledRoot = styled.div`
+    display: flex;
+    flex-flow: row nowrap;
+`;
 
 export const View: React.FC<{
     model: Model;
@@ -575,32 +644,6 @@ export const View: React.FC<{
 
             _: () => null
         })}
-
-        <button
-            onClick={() => dispatch(SaveAsFile)}
-        >
-            Save
-        </button>
-
-        <button
-            onClick={() => dispatch(Solve)}
-        >
-            Solve
-        </button>
-
-        <button
-            disabled={!model.history.isUndoable()}
-            onClick={() => dispatch(Undo)}
-        >
-            Undo ←
-        </button>
-
-        <button
-            disabled={!model.history.isReadoable()}
-            onClick={() => dispatch(Redo)}
-        >
-            Redo →
-        </button>
     </StyledRoot>
 );
 

@@ -65,20 +65,12 @@ const makeModeKnob = (): Grid.Mode => {
     const mode = Knobs.radios('Editing', {
         'Add Wall': 'add_wall',
         'Add Gravel': 'add_gravel',
-        'Add Portal In': 'add_portal_in',
-        'Add Portal Out': 'add_portal_out',
-        'Set Start': 'set_start',
-        'Set Target': 'set_target',
         'Clear Cell': 'clear_cell'
     }, 'add_gravel');
 
     switch (mode) {
         case 'add_wall': return Grid.AddObstacle(Obstacle.Wall);
         case 'add_gravel': return Grid.AddObstacle(Obstacle.Gravel);
-        case 'add_portal_in': return Grid.AddObstacle(Obstacle.PortalIn);
-        case 'add_portal_out': return Grid.AddObstacle(Obstacle.PortalOut);
-        case 'set_start': return Grid.SetStart;
-        case 'set_target': return Grid.SetTarget;
         case 'clear_cell': return Grid.ClearCell;
     }
 };
