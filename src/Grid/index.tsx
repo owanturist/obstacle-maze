@@ -253,7 +253,7 @@ const SaveAsFile = Utils.inst(class SaveAsFile implements Msg {
 
         return [
             model,
-            File.file(`maze_${maze.rows()}x${maze.cols()}`)
+            File.saver(`maze_${maze.rows()}x${maze.cols()}`)
                 .withStringBody(Maze.serialize(maze))
                 .save()
                 .perform(() => NoOp)

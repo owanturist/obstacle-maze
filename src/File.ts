@@ -2,8 +2,8 @@ import { saveAs } from 'file-saver';
 
 import { Task } from 'frctl';
 
-export interface File {
-    withStringBody(content: string): File;
+export interface Saver {
+    withStringBody(content: string): Saver;
     save(): Task<never, null>;
 }
 
@@ -31,13 +31,13 @@ class StringBody implements Body {
 
 const EmptyBody = new StringBody('');
 
-class FileImpl implements File {
+class FileImpl implements Saver {
     public constructor(
         private readonly name: string,
         private readonly body: Body
     ) {}
 
-    public withStringBody(content: string): File {
+    public withStringBody(content: string): Saver {
         return new FileImpl(this.name, new StringBody(content));
     }
 
@@ -51,4 +51,15 @@ class FileImpl implements File {
     }
 }
 
-export const file = (filename: string): File => new FileImpl(filename, EmptyBody);
+export const saver = (filename: string): Saver => new FileImpl(filename, EmptyBody);
+
+export const read = (file: File): Task<DOMException, string> => {
+    return Task.binding(done => {
+        const reader = new FileReader();
+
+        reader.readAsText(file);
+
+        reader.onload = () => done(Task.succeed(reader.result as string));
+        reader.onerror = () => done(Task.fail(reader.error as DOMException));
+    });
+};
