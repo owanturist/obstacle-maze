@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Dispatch } from 'Provider';
+import { Cmd } from 'frctl';
 import Set from 'frctl/Set';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
 import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optional';
@@ -113,108 +114,129 @@ export const initial = (rows: number, cols: number): Model => ({
 
 // U P D A T E
 
-export interface Msg extends Utils.Msg<[ Model ], Model> {}
+export interface Msg extends Utils.Msg<[ Model ], [ Model, Cmd<Msg> ]> {}
 
 const SetMode = Utils.cons(class SetMode implements Msg {
     public constructor(private readonly mode: Mode) {}
 
-    public update(model: Model): Model {
-        return {
-            ...model,
-            mode: this.mode
-        };
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [
+            {
+                ...model,
+                mode: this.mode
+            },
+            Cmd.none
+        ];
     }
 });
 
 const StopMultiple = Utils.inst(class StopMultiple implements Msg {
-    public update(model: Model): Model {
-        return {
-            ...model,
-            multiple: Nothing,
-            history: model.multiple.map(maze => model.history.push(maze)).getOrElse(model.history)
-        };
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [
+            {
+                ...model,
+                multiple: Nothing,
+                history: model.multiple.map(maze => model.history.push(maze)).getOrElse(model.history)
+            },
+            Cmd.none
+        ];
     }
 });
 
 const ClearMaze = Utils.inst(class ClearMaze implements Msg {
-    public update(model: Model): Model {
-        return {
-            ...model,
-            history: model.history.push(model.history.getCurrent().clear()),
-            solving: NotAsked
-        };
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [
+            {
+                ...model,
+                history: model.history.push(model.history.getCurrent().clear()),
+                solving: NotAsked
+            },
+            Cmd.none
+        ];
     }
 });
 
 const Solve = Utils.inst(class Solve implements Msg {
-    public update(model: Model): Model {
+    public update(model: Model): [ Model, Cmd<Msg> ] {
         const maze = model.history.getCurrent();
 
-        return {
-            ...model,
-            solving: maze.setup().cata({
-                Nothing: () => Failure('Please setup both starting and targeting locations'),
+        return [
+            {
+                ...model,
+                solving: maze.setup().cata({
+                    Nothing: () => Failure('Please setup both starting and targeting locations'),
 
-                Just: setup => Solver.solve(setup).map(path => {
-                    const cols = maze.cols();
+                    Just: setup => Solver.solve(setup).map(path => {
+                        const cols = maze.cols();
 
-                    return Set.fromList(path.map(([ row, col ]) => row * cols + col));
-                }).tap<RemoteData<string, Maybe<Set<Maze.ID>>>>(Succeed)
-            })
-        };
+                        return Set.fromList(path.map(([ row, col ]) => row * cols + col));
+                    }).tap<RemoteData<string, Maybe<Set<Maze.ID>>>>(Succeed)
+                })
+            },
+            Cmd.none
+        ];
     }
 });
 
 const EditCell = Utils.cons(class EditCell implements Msg {
     public constructor(private readonly id: Maze.ID) {}
 
-    public update(model: Model): Model {
-        return model.multiple.fold(
-            () => {
-                if (model.mode.isClearCell()
-                    || model.mode.isAddObstacle(Maze.Obstacle.Wall)
-                    || model.mode.isAddObstacle(Maze.Obstacle.Gravel)
-                ) {
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [
+            model.multiple.fold(
+                () => {
+                    if (model.mode.isClearCell()
+                        || model.mode.isAddObstacle(Maze.Obstacle.Wall)
+                        || model.mode.isAddObstacle(Maze.Obstacle.Gravel)
+                    ) {
+                        return {
+                            ...model,
+                            multiple: Just(model.mode.edit(this.id, model.history.getCurrent())), // keep maze to apply multiple edits
+                            solving: NotAsked
+                        };
+                    }
+
                     return {
                         ...model,
-                        multiple: Just(model.mode.edit(this.id, model.history.getCurrent())), // keep maze to apply multiple edits
+                        history: model.history.push(model.mode.edit(this.id, model.history.getCurrent())),
                         solving: NotAsked
                     };
-                }
+                },
 
-                return {
+                maze => ({
                     ...model,
-                    history: model.history.push(model.mode.edit(this.id, model.history.getCurrent())),
+                    multiple: Just(model.mode.edit(this.id, maze)),
                     solving: NotAsked
-                };
-            },
-
-            maze => ({
-                ...model,
-                multiple: Just(model.mode.edit(this.id, maze)),
-                solving: NotAsked
-            })
-        );
+                })
+            ),
+            Cmd.none
+        ];
     }
 });
 
 const Undo = Utils.inst(class Undo implements Msg {
-    public update(model: Model): Model {
-        return model.history.undo().map(history => ({
-            ...model,
-            history,
-            solving: NotAsked
-        } as Model)).getOrElse(model);
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [
+            {
+                ...model,
+                history: model.history.undo().getOrElse(model.history),
+                solving: NotAsked
+            },
+            Cmd.none
+        ];
     }
 });
 
 const Redo = Utils.inst(class Redo implements Msg {
-    public update(model: Model): Model {
-        return model.history.redo().map(history => ({
-            ...model,
-            history,
-            solving: NotAsked
-        } as Model)).getOrElse(model);
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [
+            {
+                ...model,
+                history: model.history.redo().getOrElse(model.history),
+                solving: NotAsked
+            },
+            Cmd.none
+        ];
     }
 });
 

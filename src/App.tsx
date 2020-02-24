@@ -1,5 +1,7 @@
 import React from 'react';
 import { Dispatch } from 'Provider';
+import { Cmd } from 'frctl';
+
 import * as Grid from 'Grid';
 import * as Utils from 'Utils';
 
@@ -15,16 +17,21 @@ export const initial: Model = {
 
 // U P D A T E
 
-export interface Msg extends Utils.Msg<[ Model ], Model> {}
+export interface Msg extends Utils.Msg<[ Model ], [ Model, Cmd<Msg> ]> {}
 
-const GridMsg = Utils.cons(class GridMsg implements Msg {
+const GridMsg = Utils.cons(class GridMsg$ implements Msg {
     public constructor(private readonly msg: Grid.Msg) {}
 
-    public update(model: Model): Model {
-        return {
-            ...model,
-            grid: this.msg.update(model.grid)
-        };
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        const [ nextGrid, cmdOfGrid ] = this.msg.update(model.grid);
+
+        return [
+            {
+                ...model,
+                grid: nextGrid
+            },
+            cmdOfGrid.map(GridMsg)
+        ];
     }
 });
 
