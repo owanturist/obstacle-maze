@@ -356,12 +356,6 @@ class ViewCell extends React.Component<ViewCellProps> {
         }
     }
 
-    private readonly onMouseUp = () => {
-        if (this.props.multiple) {
-            this.props.dispatch(StopMultiple);
-        }
-    }
-
     // we don't care about multiple here because it doesn't required for view
     public shouldComponentUpdate(nextProps: ViewCellProps): boolean {
         const { props } = this;
@@ -382,7 +376,6 @@ class ViewCell extends React.Component<ViewCellProps> {
                 image={this.getImage()}
                 onMouseDown={this.onMouseDown}
                 onMouseEnter={this.onMouseEnter}
-                onMouseUp={this.onMouseUp}
             />
         );
     }
@@ -410,28 +403,17 @@ const StyledGrid = styled.div<StyledGridProps>`
     }
 `;
 
-interface ViewGridProps {
+class ViewGrid extends React.PureComponent<{
     multiple: boolean;
     maze: Maze.Maze;
     path: Set<Maze.ID>;
     dispatch: Dispatch<Msg>;
-}
-
-class ViewGrid extends React.PureComponent<ViewGridProps> {
-    private onMouseLeave = () => {
-        if (this.props.multiple) {
-            this.props.dispatch(StopMultiple);
-        }
-    }
-
+}> {
     public render() {
         const { multiple, maze, path, dispatch } = this.props;
 
         return (
-            <StyledGrid
-                cols={maze.cols()}
-                onMouseLeave={this.onMouseLeave}
-            >
+            <StyledGrid cols={maze.cols()}>
                 {maze.map(step => (
                     <ViewCell
                         key={step.id}
@@ -652,32 +634,47 @@ const StyledRoot = styled.div`
     font-size: 14px;
 `;
 
-export const View: React.FC<{
+export class View extends React.PureComponent<{
     model: Model;
     dispatch: Dispatch<Msg>;
-}> = ({ model, dispatch }) => (
-    <StyledRoot>
-        <ViewToolbar model={model} dispatch={dispatch} />
+}> {
+    private readonly onStopMultiple = () => {
+        if (this.props.model.multiple) {
+            this.props.dispatch(StopMultiple);
+        }
+    }
 
-        <StyledScroller>
-            <ViewGrid
-                multiple={model.multiple.isJust()}
-                maze={model.multiple.getOrElse(model.history.getCurrent())}
-                path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
-                dispatch={dispatch}
-            />
-        </StyledScroller>
+    public render() {
+        const { model, dispatch } = this.props;
 
-        {model.solving.cata({
-            Failure: error => (
-                <StyledError>{error}</StyledError>
-            ),
+        return (
+            <StyledRoot
+                onMouseUp={this.onStopMultiple}
+                onMouseLeave={this.onStopMultiple}
+            >
+                <ViewToolbar model={model} dispatch={dispatch} />
 
-            Succeed: result => result.isNothing() && (
-                <StyledError>No Path</StyledError>
-            ),
+                <StyledScroller>
+                    <ViewGrid
+                        multiple={model.multiple.isJust()}
+                        maze={model.multiple.getOrElse(model.history.getCurrent())}
+                        path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
+                        dispatch={dispatch}
+                    />
+                </StyledScroller>
 
-            _: () => null
-        })}
-    </StyledRoot>
-);
+                {model.solving.cata({
+                    Failure: error => (
+                        <StyledError>{error}</StyledError>
+                    ),
+
+                    Succeed: result => result.isNothing() && (
+                        <StyledError>No Path</StyledError>
+                    ),
+
+                    _: () => null
+                })}
+            </StyledRoot>
+        );
+    }
+}
