@@ -7,26 +7,25 @@ import { Dispatch } from 'Provider';
 import Slider from 'rc-slider';
 import { Cmd } from 'frctl';
 import { Cata } from 'frctl/Basics';
-import Maybe, { Nothing, Just } from 'frctl/Maybe';
+import Maybe from 'frctl/Maybe';
 import Either from 'frctl/Either';
 
 import Dropzone from 'Dropzone';
-import * as Utils from 'Utils';
+import * as Toast from 'Toast';
 import * as File from 'File';
 import * as Maze from 'Maze';
+import * as Utils from 'Utils';
 
 // M O D E L
 
 export type Model = Readonly<{
     rows: number;
     cols: number;
-    error: Maybe<string>;
 }>;
 
 export const initial: Model = {
     rows: 20,
-    cols: 20,
-    error: Nothing
+    cols: 20
 };
 
 // U P D A T E
@@ -107,11 +106,8 @@ const UploadFile = Utils.cons(class UploadFile implements Msg {
     public update(model: Model): Stage {
         return this.file.fold(
             () => Updated(
-                {
-                    ...model,
-                    error: Just('Expects .txt file')
-                },
-                Cmd.none
+                model,
+                Toast.error('Expects *.txt file').show()
             ),
             file => Updated(
                 model,
@@ -128,12 +124,9 @@ const ReadMaze = Utils.cons(class ReadMaze implements Msg {
 
     public update(model: Model): Stage {
         return this.result.fold<Stage>(
-            error => Updated(
-                {
-                    ...model,
-                    error: Just(error)
-                },
-                Cmd.none
+            message => Updated(
+                model,
+                Toast.error(message).show()
             ),
 
             Uploaded
@@ -153,7 +146,7 @@ const StyledSideSlider = styled.div`
 const StyledSideName = styled.span`
     flex: 0 0 auto;
     font-size: 16px;
-    min-width: 80px;
+    min-width: 90px;
 `;
 
 const ViewSideSlider: React.FC<{
@@ -163,7 +156,7 @@ const ViewSideSlider: React.FC<{
 }> = ({ title, value, onChange }) => (
     <StyledSideSlider>
         <StyledSideName>
-            {title}: {value}
+            {title} {value}
         </StyledSideName>
 
         <Slider
@@ -245,19 +238,11 @@ const StyledRoot = styled.div`
     color: #444;
 `;
 
-
 export const View: React.FC<{
     model: Model;
     dispatch: Dispatch<Msg>;
 }> = ({ model, dispatch }) => (
     <StyledRoot>
-        {model.error.fold(
-            () => null,
-            error => (
-                <div>{error}</div>
-            )
-        )}
-
         <Dropzone onLoad={file => dispatch(UploadFile(file))}>
             <StyledDropLink>Choose maze file</StyledDropLink> or drag and drop
         </Dropzone>
