@@ -4,13 +4,14 @@ import { Dispatch } from 'Provider';
 import { Cmd } from 'frctl';
 import Set from 'frctl/Set';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
-import RemoteData, { NotAsked, Failure, Succeed } from 'frctl/RemoteData/Optional';
+import RemoteData, { NotAsked, Succeed } from 'frctl/RemoteData/Optional';
 
 import {
     History,
     init as initHistory
 } from 'History';
 import Tippy from 'Tippy';
+import * as Toast from 'Toast';
 import * as File from 'File';
 import * as Maze from 'Maze';
 import * as Solver from 'Maze/Solver';
@@ -183,21 +184,24 @@ const Solve = Utils.inst(class Solve implements Msg {
     public update(model: Model): [ Model, Cmd<Msg> ] {
         const maze = model.history.getCurrent();
 
-        return [
-            {
-                ...model,
-                solving: maze.setup().cata({
-                    Nothing: () => Failure('Please setup both starting and targeting locations'),
+        return maze.setup().cata({
+            Nothing: () => [
+                model,
+                Toast.warning('Please setup both starting and targeting locations').show()
+            ],
 
-                    Just: setup => Solver.solve(setup).map(path => {
+            Just: setup => [
+                {
+                    ...model,
+                    solving: Solver.solve(setup).map(path => {
                         const cols = maze.cols();
 
                         return Set.fromList(path.map(([ row, col ]) => row * cols + col));
                     }).tap<RemoteData<string, Maybe<Set<Maze.ID>>>>(Succeed)
-                })
-            },
-            Cmd.none
-        ];
+                },
+                Cmd.none
+            ]
+        });
     }
 });
 
