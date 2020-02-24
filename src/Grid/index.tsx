@@ -10,6 +10,7 @@ import {
     History,
     init as initHistory
 } from 'History';
+import * as File from 'File';
 import * as Maze from 'Maze';
 import * as Solver from 'Maze/Solver';
 import * as Utils from 'Utils';
@@ -115,6 +116,12 @@ export const initial = (rows: number, cols: number): Model => ({
 // U P D A T E
 
 export interface Msg extends Utils.Msg<[ Model ], [ Model, Cmd<Msg> ]> {}
+
+const NoOp = Utils.inst(class NoOp implements Msg {
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [ model, Cmd.none ];
+    }
+});
 
 const SetMode = Utils.cons(class SetMode implements Msg {
     public constructor(private readonly mode: Mode) {}
@@ -236,6 +243,20 @@ const Redo = Utils.inst(class Redo implements Msg {
                 solving: NotAsked
             },
             Cmd.none
+        ];
+    }
+});
+
+const SaveAsFile = Utils.inst(class SaveAsFile implements Msg {
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        const maze = model.history.getCurrent();
+
+        return [
+            model,
+            File.file(`maze_${maze.rows()}x${maze.cols()}`)
+                .withStringBody(Maze.serialize(maze))
+                .save()
+                .perform(() => NoOp)
         ];
     }
 });
@@ -533,6 +554,12 @@ export const View: React.FC<{
 
             _: () => null
         })}
+
+        <button
+            onClick={() => dispatch(SaveAsFile)}
+        >
+            Save
+        </button>
 
         <button
             onClick={() => dispatch(Solve)}
