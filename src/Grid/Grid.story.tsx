@@ -18,13 +18,13 @@ export default {
 
 export const Initial = () => (
     <Grid.View
-        model={Grid.initial(20, 20)}
+        model={Grid.initEmpty(20, 20)}
         dispatch={action('Dispatch')}
     />
 );
 
 export const WithObstacles = () => {
-    const initialModel = Grid.initial(20, 20);
+    const initialModel = Grid.initEmpty(20, 20);
     const maze = initialModel.history.getCurrent()
         .setStart(0)
 
@@ -84,7 +84,7 @@ const makeModeKnob = (): Grid.Mode => {
 };
 
 export const ActiveMode = () => {
-    const initialModel = Grid.initial(20, 20);
+    const initialModel = Grid.initEmpty(20, 20);
     const model = {
         ...initialModel,
         mode: makeModeKnob()
@@ -99,7 +99,7 @@ export const ActiveMode = () => {
 };
 
 export const Failure = () => {
-    const initialModel = Grid.initial(20, 20);
+    const initialModel = Grid.initEmpty(20, 20);
     const model = {
         ...initialModel,
         solving: RemoteData.Failure(Knobs.text('Loading', 'The Maze does not have start and target locations'))
@@ -114,7 +114,7 @@ export const Failure = () => {
 };
 
 export const NoPath = () => {
-    const initialModel = Grid.initial(20, 20);
+    const initialModel = Grid.initEmpty(20, 20);
     const model = {
         ...initialModel,
         solving: RemoteData.Succeed(Maybe.Nothing)
@@ -130,7 +130,7 @@ export const NoPath = () => {
 
 
 export const FoundPath = () => {
-    const initialModel = Grid.initial(20, 20);
+    const initialModel = Grid.initEmpty(20, 20);
     const path = Knobs.array('Path', [ '21', '22', '23', '43' ], ' ').filter(Boolean).map(Number);
 
     const model = {

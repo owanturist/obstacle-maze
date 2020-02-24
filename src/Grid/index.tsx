@@ -1,5 +1,5 @@
 import React from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { Dispatch } from 'Provider';
 import { Cmd } from 'frctl';
 import Set from 'frctl/Set';
@@ -106,12 +106,14 @@ export type Model = Readonly<{
     solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
 }>;
 
-export const initial = (rows: number, cols: number): Model => ({
+export const initWithMaze = (maze: Maze.Maze): Model => ({
     mode: AddObstacle(Maze.Obstacle.Wall),
     multiple: Nothing,
-    history: initHistory(Maze.init(rows, cols)),
+    history: initHistory(maze),
     solving: NotAsked
 });
+
+export const initEmpty = (rows: number, cols: number): Model => initWithMaze(Maze.init(rows, cols));
 
 // U P D A T E
 
