@@ -29,7 +29,9 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts build && npm run server",
+    "server": "node server.js",
+    "dev": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -58,6 +60,7 @@
     "@storybook/addon-links": "^5.3.13",
     "@storybook/addons": "^5.3.13",
     "@storybook/preset-create-react-app": "^1.5.2",
-    "@storybook/react": "^5.3.13"
+    "@storybook/react": "^5.3.13",
+    "static-server": "^2.2.1"
   }
 }
