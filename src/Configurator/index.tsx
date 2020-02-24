@@ -1,6 +1,3 @@
-// tslint:disable-next-line:no-import-side-effect
-import 'rc-slider/assets/index.css';
-
 import React from 'react';
 import { Dispatch } from 'Provider';
 import Slider from 'rc-slider';

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ButtonHTMLAttributes } from 'react';
 import styled, { css } from 'styled-components';
 import { Dispatch } from 'Provider';
 import { Cmd } from 'frctl';
@@ -10,6 +10,7 @@ import {
     History,
     init as initHistory
 } from 'History';
+import Tippy from 'Tippy';
 import * as File from 'File';
 import * as Maze from 'Maze';
 import * as Solver from 'Maze/Solver';
@@ -477,14 +478,31 @@ const StyledTool = styled.button<StyledToolProps>`
     }
 `;
 
-type Tool = Readonly<{
+const ViewTool: React.FC<{
+    title: string;
+} & StyledToolProps & ButtonHTMLAttributes<Element>> = ({ title, ...props }) => (
+    <Tippy
+        arrow={false}
+        distance={5}
+        placement="bottom-end"
+        content={title}
+    >
+        <StyledTool
+            type="button"
+            tabIndex={0}
+            {...props}
+        />
+    </Tippy>
+);
+
+type EditTool = Readonly<{
     title: string;
     image: string;
     mode: Mode;
 }>;
 
-class ViewTool extends React.PureComponent<{
-    tool: Tool;
+class ViewEditTool extends React.PureComponent<{
+    tool: EditTool;
     mode: Mode;
     dispatch: Dispatch<Msg>;
 }> {
@@ -500,11 +518,9 @@ class ViewTool extends React.PureComponent<{
 
     public render() {
         return (
-            <StyledTool
-                type="button"
-                tabIndex={0}
-                title={this.props.tool.title}
+            <ViewTool
                 active={this.isActive()}
+                title={this.props.tool.title}
                 image={this.props.tool.image}
                 onClick={this.onClick}
             />
@@ -512,7 +528,7 @@ class ViewTool extends React.PureComponent<{
     }
 }
 
-const TOOLS: Array<Tool> = [
+const TOOLS: Array<EditTool> = [
     {
         title: 'Add wall',
         image: wallImage,
@@ -567,25 +583,25 @@ const ViewToolbar: React.FC<{
 }> = ({ mode, dispatch }) => (
     <StyledToolbar>
         <StyledToolGroup>
-            <StyledTool
+            <ViewTool
                 title="Start over"
                 image={startOverImage}
                 onClick={() => dispatch(ClearMaze)}
             />
 
-            <StyledTool
+            <ViewTool
                 title="Save as file"
                 image={saveImage}
                 onClick={() => dispatch(SaveAsFile)}
             />
 
-            <StyledTool
+            <ViewTool
                 title="Undo"
                 image={undoImage}
                 onClick={() => dispatch(Undo)}
             />
 
-            <StyledTool
+            <ViewTool
                 title="Redo"
                 image={redoImage}
                 onClick={() => dispatch(Redo)}
@@ -594,7 +610,7 @@ const ViewToolbar: React.FC<{
 
         <StyledToolGroup>
             {TOOLS.map(tool => (
-                <ViewTool
+                <ViewEditTool
                     key={tool.title}
                     tool={tool}
                     mode={mode}
@@ -604,7 +620,7 @@ const ViewToolbar: React.FC<{
         </StyledToolGroup>
 
         <StyledToolGroup>
-            <StyledTool
+            <ViewTool
                 title="Find path"
                 image={findPathImage}
                 onClick={() => dispatch(Solve)}

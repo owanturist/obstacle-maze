@@ -1,4 +1,5 @@
-// tslint:disable-next-line:no-import-side-effect
+// tslint:disable:no-import-side-effect
+import 'rc-slider/assets/index.css';
 import './index.css';
 
 import React from 'react';
