@@ -473,8 +473,14 @@ const StyledTool = styled.button<StyledToolProps>`
         box-shadow: 0 0 0 2px ${props => props.active ? 'rgba(52, 152, 219, .3)' : 'rgba(0, 0, 0, 0.05)'};
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
+        background-color: #f9f9f9;
+    }
+
+    &:disabled {
+        cursor: default;
         background-color: #f4f4f4;
+        opacity: .75;
     }
 `;
 
@@ -578,9 +584,9 @@ const StyledToolbar = styled.div`
 `;
 
 const ViewToolbar: React.FC<{
-    mode: Mode;
+    model: Model;
     dispatch: Dispatch<Msg>;
-}> = ({ mode, dispatch }) => (
+}> = ({ model, dispatch }) => (
     <StyledToolbar>
         <StyledToolGroup>
             <ViewTool
@@ -596,12 +602,14 @@ const ViewToolbar: React.FC<{
             />
 
             <ViewTool
+                disabled={!model.history.isUndoable()}
                 title="Undo"
                 image={undoImage}
                 onClick={() => dispatch(Undo)}
             />
 
             <ViewTool
+                disabled={!model.history.isReadoable()}
                 title="Redo"
                 image={redoImage}
                 onClick={() => dispatch(Redo)}
@@ -613,7 +621,7 @@ const ViewToolbar: React.FC<{
                 <ViewEditTool
                     key={tool.title}
                     tool={tool}
-                    mode={mode}
+                    mode={model.mode}
                     dispatch={dispatch}
                 />
             ))}
@@ -647,10 +655,7 @@ export const View: React.FC<{
     dispatch: Dispatch<Msg>;
 }> = ({ model, dispatch }) => (
     <StyledRoot>
-        <ViewToolbar
-            mode={model.mode}
-            dispatch={dispatch}
-        />
+        <ViewToolbar model={model} dispatch={dispatch} />
 
         <StyledScroller>
             <ViewGrid
