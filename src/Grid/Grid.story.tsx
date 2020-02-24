@@ -3,7 +3,6 @@ import { action } from '@storybook/addon-actions';
 import * as Knobs from '@storybook/addon-knobs';
 import Set from 'frctl/Set';
 import Maybe from 'frctl/Maybe';
-import RemoteData from 'frctl/RemoteData/Optional';
 
 import * as Grid from './index';
 import { deserialize, Obstacle } from 'Maze';
@@ -90,36 +89,6 @@ export const ActiveMode = () => {
     );
 };
 
-export const Failure = () => {
-    const initialModel = Grid.initEmpty(20, 20);
-    const model = {
-        ...initialModel,
-        solving: RemoteData.Failure(Knobs.text('Loading', 'The Maze does not have start and target locations'))
-    };
-
-    return (
-        <Grid.View
-            model={model}
-            dispatch={action('Dispatch')}
-        />
-    );
-};
-
-export const NoPath = () => {
-    const initialModel = Grid.initEmpty(20, 20);
-    const model = {
-        ...initialModel,
-        solving: RemoteData.Succeed(Maybe.Nothing)
-    };
-
-    return (
-        <Grid.View
-            model={model}
-            dispatch={action('Dispatch')}
-        />
-    );
-};
-
 
 export const FoundPath = () => {
     const initialModel = deserialize(`
@@ -152,7 +121,7 @@ o;###################
 
     const model = {
         ...initialModel,
-        solving: RemoteData.Succeed(path.length ? Maybe.Just(Set.fromList(path)) : Maybe.Nothing)
+        solution: path.length ? Maybe.Just(Set.fromList(path)) : Maybe.Nothing
     };
 
     return (

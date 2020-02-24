@@ -1,7 +1,6 @@
 import React from 'react';
 import { action } from '@storybook/addon-actions';
 import * as Knobs from '@storybook/addon-knobs';
-import Maybe from 'frctl/Maybe';
 
 import * as Configurator from './index';
 
@@ -25,20 +24,6 @@ export const Custom = () => {
         ...Configurator.initial,
         rows: Knobs.number('Rows', 30, { range: true, min: 0, max: 100, step: 1 }) || 0,
         cols: Knobs.number('Cols', 40, { range: true, min: 0, max: 100, step: 1 }) || 0
-    };
-
-    return (
-        <Configurator.View
-            model={model}
-            dispatch={action('Dispatch')}
-        />
-    );
-};
-
-export const Failure = () => {
-    const model = {
-        ...Configurator.initial,
-        error: Maybe.Just(Knobs.text('Error', 'Invalid maze'))
     };
 
     return (
