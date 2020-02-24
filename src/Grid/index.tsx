@@ -400,9 +400,9 @@ interface StyledGridProps {
 const StyledGrid = styled.div<StyledGridProps>`
     display: flex;
     flex-flow: row wrap;
-    margin-left: 10px;
+    padding: 10px;
     width: ${props => 30 * props.cols}px;
-    min-width: 480px;
+    min-width: ${props => 15 * props.cols}px;
     max-width: 100%;
 
     ${StyledCell} {
@@ -577,6 +577,7 @@ const StyledToolGroup = styled.div`
 const StyledToolbar = styled.div`
     display: flex;
     flex-direction: column;
+    flex: 0 0 auto;
     overflow-y: auto;
     padding: 10px;
     background: #fff;
@@ -590,6 +591,7 @@ const ViewToolbar: React.FC<{
     <StyledToolbar>
         <StyledToolGroup>
             <ViewTool
+                disabled={model.history.getCurrent().isEmpty()}
                 title="Start over"
                 image={startOverImage}
                 onClick={() => dispatch(ClearMaze)}

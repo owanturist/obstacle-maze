@@ -56,6 +56,8 @@ export interface Maze {
 
     hasTarget(): boolean;
 
+    isEmpty(): boolean;
+
     // C O N S T R U C T I O N
 
     setStart(id: ID): Maze;
@@ -98,6 +100,10 @@ class MazeImpl implements Maze {
 
     public hasTarget(): boolean {
         return this.target.isJust();
+    }
+
+    public isEmpty(): boolean {
+        return !this.hasStart() && !this.hasTarget() && this.obstacles.isEmpty();
     }
 
     public setStart(id: ID): Maze {
