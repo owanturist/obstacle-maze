@@ -4,7 +4,6 @@ import { Dispatch } from 'Provider';
 import { Cmd } from 'frctl';
 import Set from 'frctl/Set';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
-import RemoteData, { NotAsked, Succeed } from 'frctl/RemoteData/Optional';
 
 import {
     History,
@@ -118,14 +117,14 @@ export type Model = Readonly<{
     mode: Mode;
     multiple: Maybe<Maze.Maze>;
     history: History<Maze.Maze>;
-    solving: RemoteData<string, Maybe<Set<Maze.ID>>>;
+    solution: Maybe<Set<Maze.ID>>;
 }>;
 
 export const initWithMaze = (maze: Maze.Maze): Model => ({
     mode: AddObstacle(Maze.Obstacle.Wall),
     multiple: Nothing,
     history: initHistory(maze),
-    solving: NotAsked
+    solution: Nothing
 });
 
 export const initEmpty = (rows: number, cols: number): Model => initWithMaze(Maze.init(rows, cols));
@@ -173,7 +172,7 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
             {
                 ...model,
                 history: model.history.push(model.history.getCurrent().clear()),
-                solving: NotAsked
+                solution: Nothing
             },
             Cmd.none
         ];
@@ -183,6 +182,7 @@ const ClearMaze = Utils.inst(class ClearMaze implements Msg {
 const Solve = Utils.inst(class Solve implements Msg {
     public update(model: Model): [ Model, Cmd<Msg> ] {
         const maze = model.history.getCurrent();
+        const cols = maze.cols();
 
         return maze.setup().cata({
             Nothing: () => [
@@ -190,17 +190,20 @@ const Solve = Utils.inst(class Solve implements Msg {
                 Toast.warning('Please setup both starting and targeting locations').show()
             ],
 
-            Just: setup => [
-                {
-                    ...model,
-                    solving: Solver.solve(setup).map(path => {
-                        const cols = maze.cols();
+            Just: setup => Solver.solve(setup).cata({
+                Nothing: () => [
+                    model,
+                    Toast.info('There is not path between starting and targeting locations').show()
+                ],
 
-                        return Set.fromList(path.map(([ row, col ]) => row * cols + col));
-                    }).tap<RemoteData<string, Maybe<Set<Maze.ID>>>>(Succeed)
-                },
-                Cmd.none
-            ]
+                Just: path => [
+                    {
+                        ...model,
+                        solution: Set.fromList(path.map(([ row, col ]) => row * cols + col)).tap(Just)
+                    },
+                    Cmd.none
+                ]
+            })
         });
     }
 });
@@ -219,21 +222,21 @@ const EditCell = Utils.cons(class EditCell implements Msg {
                         return {
                             ...model,
                             multiple: Just(model.mode.edit(this.id, model.history.getCurrent())), // keep maze to apply multiple edits
-                            solving: NotAsked
+                            solving: Nothing
                         };
                     }
 
                     return {
                         ...model,
                         history: model.history.push(model.mode.edit(this.id, model.history.getCurrent())),
-                        solving: NotAsked
+                        solving: Nothing
                     };
                 },
 
                 maze => ({
                     ...model,
                     multiple: Just(model.mode.edit(this.id, maze)),
-                    solving: NotAsked
+                    solving: Nothing
                 })
             ),
             Cmd.none
@@ -247,7 +250,7 @@ const Undo = Utils.inst(class Undo implements Msg {
             {
                 ...model,
                 history: model.history.undo().getOrElse(model.history),
-                solving: NotAsked
+                solution: Nothing
             },
             Cmd.none
         ];
@@ -260,7 +263,7 @@ const Redo = Utils.inst(class Redo implements Msg {
             {
                 ...model,
                 history: model.history.redo().getOrElse(model.history),
-                solving: NotAsked
+                solution: Nothing
             },
             Cmd.none
         ];
@@ -625,10 +628,6 @@ const ViewToolbar: React.FC<{
     </StyledToolbar>
 );
 
-const StyledError = styled.div`
-    color: #c0392b;
-`;
-
 const StyledRoot = styled.div`
     display: flex;
     flex-flow: row nowrap;
@@ -662,22 +661,10 @@ export class View extends React.PureComponent<{
                     <ViewGrid
                         multiple={model.multiple.isJust()}
                         maze={model.multiple.getOrElse(model.history.getCurrent())}
-                        path={model.solving.toMaybe().tap(Maybe.join).getOrElse(Set.empty as Set<Maze.ID>)}
+                        path={model.solution.getOrElse(Set.empty as Set<Maze.ID>)}
                         dispatch={dispatch}
                     />
                 </StyledScroller>
-
-                {model.solving.cata({
-                    Failure: error => (
-                        <StyledError>{error}</StyledError>
-                    ),
-
-                    Succeed: result => result.isNothing() && (
-                        <StyledError>No Path</StyledError>
-                    ),
-
-                    _: () => null
-                })}
             </StyledRoot>
         );
     }
