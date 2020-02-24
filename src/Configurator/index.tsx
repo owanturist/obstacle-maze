@@ -7,7 +7,6 @@ import Maybe, { Nothing, Just } from 'frctl/Maybe';
 import Either from 'frctl/Either';
 
 import Dropzone from 'Dropzone';
-import * as Grid from 'Grid';
 import * as Utils from 'Utils';
 import * as File from 'File';
 import * as Maze from 'Maze';
@@ -187,7 +186,5 @@ export const View: React.FC<{
         >
             Done
         </button>
-
-        <Grid.Preview rows={model.rows} cols={model.cols} />
     </div>
 );

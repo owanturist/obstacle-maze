@@ -672,25 +672,3 @@ export const View: React.FC<{
         })}
     </StyledRoot>
 );
-
-interface PreviewProps {
-    cols: number;
-    rows: number;
-}
-
-export class Preview extends React.PureComponent<PreviewProps> {
-    public render() {
-        const { cols, rows } = this.props;
-        const cells: Array<JSX.Element> = new Array(cols * rows);
-
-        for (let i = 0; i < cells.length; i++) {
-            cells[ i ] = (
-                <StyledCell key={i} static image={Nothing} />
-            );
-        }
-
-        return (
-            <StyledGrid cols={cols} children={cells} />
-        );
-    }
-}
