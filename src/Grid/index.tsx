@@ -638,6 +638,8 @@ const StyledRoot = styled.div`
     flex-flow: row nowrap;
     height: 100%;
     min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
 `;
 
 export const View: React.FC<{

@@ -2,6 +2,8 @@ import Maybe, { Nothing, Just } from 'frctl/Maybe';
 import Either, { Left, Right } from 'frctl/Either';
 import Dict from 'frctl/Dict';
 
+export const MINIMUM_SIDE = 2;
+export const MAXIMUM_SIDE = 100;
 
 /**
  * Cell's id.
@@ -357,14 +359,22 @@ const processRepresentation = (id: ID, symbol: string, acc: Representation): Eit
 export const deserialize = (input: string): Either<string, Maze> => {
     const rows = input.split(/\n/);
 
-    if (rows.length < 2) {
-        return Left(`It expects no less than 2 rows but got "${rows.length}" instead`);
+    if (rows.length < MINIMUM_SIDE) {
+        return Left(`It expects no less than ${MINIMUM_SIDE} rows but got "${rows.length}" instead`);
+    }
+
+    if (rows.length > MAXIMUM_SIDE) {
+        return Left(`It expects no more than ${MAXIMUM_SIDE} rows but got "${rows.length}" instead`);
     }
 
     const N = rows[ 0 ].length;
 
-    if (N < 2) {
-        return Left(`It expects no less than 2 cols but got "${N}" instead`);
+    if (N < MINIMUM_SIDE) {
+        return Left(`It expects no less than ${MINIMUM_SIDE} cols but got "${N}" instead`);
+    }
+
+    if (N > MAXIMUM_SIDE) {
+        return Left(`It expects no more than ${MAXIMUM_SIDE} cols but got "${N}" instead`);
     }
 
     const symbols: Array<string> = [];

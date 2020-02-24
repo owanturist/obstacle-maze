@@ -15,6 +15,7 @@ const StyledRoot = styled.div<StyledRootProps>`
     font-size: 18px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     outline: none;
+    cursor: default;
 `;
 
 const StyledContent = styled.div`
@@ -26,16 +27,9 @@ const StyledContent = styled.div`
     border: 2px dashed #aaa;
 `;
 
-const StyledLink = styled.strong`
-    cursor: pointer;
-
-    &:hover {
-        color: #3498db;
-    }
-`;
-
 export default class Dropzone extends React.PureComponent<{
     onLoad(file: Maybe<File>): void;
+    children?: React.ReactNode;
 }, {
     hovered: boolean;
 }> {
@@ -67,9 +61,7 @@ export default class Dropzone extends React.PureComponent<{
                         <input {...getInputProps()}/>
 
                         <StyledContent>
-                            <span>
-                                <StyledLink>Choose a file</StyledLink> or drag and drop
-                            </span>
+                            <div>{this.props.children}</div>
                         </StyledContent>
                     </StyledRoot>
                 )}
