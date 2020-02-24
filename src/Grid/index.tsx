@@ -228,21 +228,21 @@ const EditCell = Utils.cons(class EditCell implements Msg {
                         return {
                             ...model,
                             multiple: Just(model.mode.edit(this.id, model.history.getCurrent())), // keep maze to apply multiple edits
-                            solving: Nothing
+                            solution: Nothing
                         };
                     }
 
                     return {
                         ...model,
                         history: model.history.push(model.mode.edit(this.id, model.history.getCurrent())),
-                        solving: Nothing
+                        solution: Nothing
                     };
                 },
 
                 maze => ({
                     ...model,
                     multiple: Just(model.mode.edit(this.id, maze)),
-                    solving: Nothing
+                    solution: Nothing
                 })
             ),
             Cmd.none
