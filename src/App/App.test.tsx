@@ -1,3 +1,5 @@
+import React from 'react';
+import Enzyme from 'enzyme';
 import { Cmd } from 'frctl';
 
 import * as Configurator from '../Configurator';
@@ -115,5 +117,39 @@ describe('App.GridMsg', () => {
 
         expect(FakeCmd.map).toBeCalledTimes(1);
         expect(FakeCmd.map).toBeCalledWith(App.GridMsg);
+    });
+});
+
+describe('App.View', () => {
+    const dispatch = jest.fn<void, [ App.Msg ]>();
+
+    beforeEach(() => {
+        dispatch.mockReset();
+    });
+
+    it('Shows Configurator when App.ConfiguratorScreen', () => {
+        const wrapper = Enzyme.shallow(
+            <App.View
+                model={App.initial}
+                dispatch={dispatch}
+            />
+        );
+
+        expect(wrapper.find(Configurator.View).length).toBe(1);
+        expect(wrapper.find(Grid.View).length).toBe(0);
+    });
+
+    it('Shows Grid when App.GridScreen', () => {
+        const wrapper = Enzyme.shallow(
+            <App.View
+                model={{
+                    screen: App.GridScreen(Grid.init(Maze.empty(20, 10)))
+                }}
+                dispatch={dispatch}
+            />
+        );
+
+        expect(wrapper.find(Configurator.View).length).toBe(0);
+        expect(wrapper.find(Grid.View).length).toBe(1);
     });
 });
