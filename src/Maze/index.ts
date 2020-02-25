@@ -37,12 +37,39 @@ export type Setup = Readonly<{
 /**
  * Represents Maze cell.
  */
-export type Cell = Readonly<{
-    id: ID;
-    starting: boolean;
-    targeting: boolean;
-    obstacle: Maybe<Obstacle>;
-}>;
+export interface Cell {
+    readonly id: ID;
+    readonly starting: boolean;
+    readonly targeting: boolean;
+    readonly obstacle: Maybe<Obstacle>;
+    isEqual(another: Cell): boolean;
+}
+
+class CellImpl implements Cell {
+    public static clean(id: ID, start: ID, target: ID): Cell {
+        return new CellImpl(id, start === id, target === id, Nothing);
+    }
+
+    public static withObstacle(id: ID, obstacle: Obstacle): Cell {
+        return new CellImpl(id, false, false, Just(obstacle));
+    }
+
+    private constructor(
+        public readonly id: ID,
+        public readonly starting: boolean,
+        public readonly targeting: boolean,
+        public readonly obstacle: Maybe<Obstacle>
+    ) {}
+
+    public isEqual(another: Cell): boolean {
+        return this === another || (
+            this.id === another.id
+            && this.starting === another.starting
+            && this.targeting === another.targeting
+            && this.obstacle.isEqual(another.obstacle)
+        );
+    }
+}
 
 /**
  * Immutable Maze.
@@ -220,25 +247,11 @@ class MazeImpl implements Maze {
 
         while (i < N) {
             while (i < N && (j >= M || i < obstacles[ j ][ 0 ])) {
-                const cell: Cell = {
-                    id: i,
-                    starting: i === start,
-                    targeting: i === target,
-                    obstacle: Nothing
-                };
-
-                result[ i++ ] = fn(cell);
+                result[ i ] = fn(CellImpl.clean(i++, start, target));
             }
 
             while (j < M && i >= obstacles[ j ][ 0 ]) {
-                const cell: Cell = {
-                    id: i,
-                    starting: i === start,
-                    targeting: i === target,
-                    obstacle: Just(obstacles[ j++ ][ 1 ])
-                };
-
-                result[ i++ ] = fn(cell);
+                result[ i ] = fn(CellImpl.withObstacle(i++, obstacles[ j++ ][ 1 ]));
             }
         }
 

@@ -373,10 +373,7 @@ class ViewCell extends React.Component<ViewCellProps> {
 
         return props.inPath !== nextProps.inPath
             || props.dispatch !== nextProps.dispatch
-            || props.step.id !== nextProps.step.id
-            || props.step.starting !== nextProps.step.starting
-            || props.step.targeting !== nextProps.step.targeting
-            || !props.step.obstacle.isEqual(nextProps.step.obstacle)
+            || !props.step.isEqual(nextProps.step)
             ;
     }
 
