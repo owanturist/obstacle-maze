@@ -25,7 +25,7 @@ describe('Maze.deserialize()', () => {
 ...
 ...
 ..
-        `.trim())).toEqual(Either.Right(Maze.init(3, 3)));
+        `.trim())).toEqual(Either.Right(Maze.empty(3, 3)));
 
         expect(Maze.deserialize(`
 ox.
@@ -66,7 +66,7 @@ o..
 ...@.#..#..######...
 .....#..............
 .....#..............
-        `.trim()).getOrElse(Maze.init(0, 0));
+        `.trim()).getOrElse(Maze.empty(0, 0));
 
         expect(maze.cols()).toBe(20);
         expect(maze.rows()).toBe(10);
@@ -105,7 +105,7 @@ describe('Maze.serialize()', () => {
 
 
 it('Maze construction', () => {
-    const _0 = Maze.init(8, 20);
+    const _0 = Maze.empty(8, 20);
     expect(Maze.serialize(_0)).toBe(`
 ....................
 ....................

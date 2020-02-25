@@ -127,7 +127,7 @@ export const initWithMaze = (maze: Maze.Maze): Model => ({
     solution: Nothing
 });
 
-export const initEmpty = (rows: number, cols: number): Model => initWithMaze(Maze.init(rows, cols));
+export const initEmpty = (rows: number, cols: number): Model => initWithMaze(Maze.empty(rows, cols));
 
 // U P D A T E
 

@@ -60,14 +60,7 @@ const ConfiguratorMsg = Utils.cons(class ConfiguratorMsg$ implements Msg {
                     cmdOfConfigurator.map(ConfiguratorMsg)
                 ],
 
-                Configured: (rows, cols) => [
-                    {
-                        screen: GridScreen(Grid.initEmpty(rows, cols))
-                    },
-                    Cmd.none
-                ],
-
-                Uploaded: maze => [
+                Configured: maze => [
                     {
                         screen: GridScreen(Grid.initWithMaze(maze))
                     },

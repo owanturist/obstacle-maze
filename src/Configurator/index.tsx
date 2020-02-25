@@ -32,8 +32,7 @@ export const initial: Model = {
 
 export type StagePattern<R> = Cata<{
     Updated(model: Model, cmd: Cmd<Msg>): R;
-    Configured(rows: number, cols: number): R;
-    Uploaded(maze: Maze.Maze): R;
+    Configured(maze: Maze.Maze): R;
 }>;
 
 export interface Stage {
@@ -52,21 +51,10 @@ const Updated = Utils.cons(class Updated implements Stage {
 });
 
 const Configured = Utils.cons(class Configured implements Stage {
-    public constructor(
-        private readonly rows: number,
-        private readonly cols: number
-    ) {}
-
-    public cata<R>(pattern: StagePattern<R>): R {
-        return pattern.Configured ? pattern.Configured(this.rows, this.cols) : (pattern._ as () => R)();
-    }
-});
-
-const Uploaded = Utils.cons(class Uploaded implements Stage {
     public constructor(private readonly maze: Maze.Maze) {}
 
     public cata<R>(pattern: StagePattern<R>): R {
-        return pattern.Uploaded ? pattern.Uploaded(this.maze) : (pattern._ as () => R)();
+        return pattern.Configured ? pattern.Configured(this.maze) : (pattern._ as () => R)();
     }
 });
 
@@ -74,7 +62,7 @@ const Uploaded = Utils.cons(class Uploaded implements Stage {
 
 export interface Msg extends Utils.Msg<[ Model ], Stage> {}
 
-const SetSize = Utils.cons(class SetRows implements Msg {
+export const SetSize = Utils.cons(class SetRows implements Msg {
     public constructor(
         private readonly rows: boolean,
         private readonly size: number
@@ -94,13 +82,13 @@ const SetSize = Utils.cons(class SetRows implements Msg {
     }
 });
 
-const Configure = Utils.inst(class Configure implements Msg {
+export const InitEmpty = Utils.inst(class InitEmpty implements Msg {
     public update(model: Model): Stage {
-        return Configured(model.rows, model.cols);
+        return Configured(Maze.empty(model.rows, model.cols));
     }
 });
 
-const UploadFile = Utils.cons(class UploadFile implements Msg {
+export const UploadFile = Utils.cons(class UploadFile implements Msg {
     public constructor(private readonly file: Maybe<File>) {}
 
     public update(model: Model): Stage {
@@ -119,7 +107,7 @@ const UploadFile = Utils.cons(class UploadFile implements Msg {
     }
 });
 
-const ReadMaze = Utils.cons(class ReadMaze implements Msg {
+export const ReadMaze = Utils.cons(class ReadMaze implements Msg {
     public constructor(private readonly result: Either<string, Maze.Maze>) {}
 
     public update(model: Model): Stage {
@@ -129,7 +117,7 @@ const ReadMaze = Utils.cons(class ReadMaze implements Msg {
                 Toast.error(message).show()
             ),
 
-            Uploaded
+            Configured
         );
     }
 });
@@ -264,7 +252,7 @@ export const View: React.FC<{
         <StyledStartButton
             type="button"
             tabIndex={0}
-            onClick={() => dispatch(Configure)}
+            onClick={() => dispatch(InitEmpty)}
         >
             Start from scratch
         </StyledStartButton>

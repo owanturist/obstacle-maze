@@ -147,7 +147,7 @@ class MazeImpl implements Maze {
     }
 
     public clear(): Maze {
-        return init(this.rowsCount, this.colsCount);
+        return empty(this.rowsCount, this.colsCount);
     }
 
     // The reason why nested loops are used is that in case
@@ -232,7 +232,7 @@ class MazeImpl implements Maze {
     }
 }
 
-export const init = (rows: number, cols: number): Maze => new MazeImpl(
+export const empty = (rows: number, cols: number): Maze => new MazeImpl(
     rows,
     cols,
     Nothing,
