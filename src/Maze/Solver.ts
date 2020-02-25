@@ -10,7 +10,7 @@ import {
 } from './index';
 import {
     NonEmptyStack,
-    singleton as initNonEmptyStack
+    singleton
 } from '../NonEmptyStack';
 import {
     PriorityQueue,
@@ -27,10 +27,11 @@ export type Path = Array<[ number, number ]>;
 
 class Way implements Comparable<Way> {
     public static start(startLocation: [ number, number ]): Way {
-        return new Way(0, initNonEmptyStack(startLocation));
+        return new Way(0, 0, singleton(startLocation));
     }
 
     private constructor(
+        private readonly turns: number,
         private readonly time: number,
         private readonly path: NonEmptyStack<[ number, number ]>
     ) {}
@@ -44,6 +45,14 @@ class Way implements Comparable<Way> {
             return Order.GT;
         }
 
+        if (this.turns < another.turns) {
+            return Order.LT;
+        }
+
+        if (this.turns > another.turns) {
+            return Order.GT;
+        }
+
         return Order.EQ;
     }
 
@@ -52,7 +61,17 @@ class Way implements Comparable<Way> {
     }
 
     public next(duration: number, row: number, col: number): Way {
-        return new Way(this.time + duration, this.path.push([ row, col ]));
+        const inRow = this.path.pop().map(([ , prev ]) => {
+            const [ prevRow, prevCol ] = prev.peek();
+
+            return (prevRow === row || prevCol === col);
+        }).getOrElse(true);
+
+        return new Way(
+            inRow ? this.turns : this.turns + 1,
+            this.time + duration,
+            this.path.push([ row, col ])
+        );
     }
 
     public getPath(): Path {
