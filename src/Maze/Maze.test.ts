@@ -32,7 +32,7 @@ ox.
 #;@
 *.!
         `.trim())).toEqual(
-            Either.Left('Unknown symbol "!"')
+            Either.Left('Unknown figure "!"')
         );
 
 

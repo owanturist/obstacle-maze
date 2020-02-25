@@ -26,7 +26,7 @@ export enum Obstacle
     }
 
 /**
- * Represents minimum available Maze configuration for solving.
+ * Represents the grid as array of arrays with starting and targeting locations.
  */
 export type Setup = Readonly<{
     start: [ number, number ];
@@ -46,39 +46,82 @@ export type Cell = Readonly<{
 
 /**
  * Immutable Maze.
- * Represents a grid rows×cols dimention.
- * Allows add obstacles and setup start/target locations by time proportional `O(log n)`.
+ * Represents a grid rows×cols dimention
+ * with starting/targeting locations and obstacles around.
  */
 export interface Maze {
 
     // Q U E R I E S
 
+    /**
+     * Gives a number of columns.
+     */
     cols(): number;
 
+    /**
+     * Gives a number of rows.
+     */
     rows(): number;
 
+    /**
+     * Determine does the maze have starting location or not.
+     */
     hasStart(): boolean;
 
+    /**
+     * Determine does the maze have targeting location or not.
+     */
     hasTarget(): boolean;
 
+    /**
+     * Determine does the maze have either obstacles, starting or targeting locations.
+     */
     isEmpty(): boolean;
 
     // C O N S T R U C T I O N
 
+    /**
+     * Set starting location.
+     * Takes time proportional to `O(log n)`.
+     */
     setStart(id: ID): Maze;
 
+    /**
+     * Set targeting location.
+     * Takes time proportional to `O(log n)`.
+     */
     setTarget(id: ID): Maze;
 
+    /**
+     * Set obstacle at the location.
+     * Takes time proportional to `O(log n)`.
+     */
     setObstacle(id: ID, obstacle: Obstacle): Maze;
 
+    /**
+     * Removes either an obstacle, starting or targeting location.
+     * Takes time proportional to `O(log n)`.
+     */
     remove(id: ID): Maze;
 
+
+    /**
+     * Removes all of the obstacles, starting and targeting locations.
+     * Takes constant time.
+     */
     clear(): Maze;
 
     // D E C O N S T R U C T I O N
 
+    /**
+     * Maps cells into an array.
+     * Takes time proportional to `O(n)`
+     */
     map<T>(fn: (cell: Cell) => T): Array<T>;
 
+    /**
+     * Convert the maze to Setup if starting and targeting locations are exists.
+     */
     setup(): Maybe<Setup>;
 }
 
@@ -249,48 +292,54 @@ export const empty = (rows: number, cols: number): Maze => new MazeImpl(
  * D E C O D E  /  E N C O D E
  */
 
-const SYMBOL_START = 'o';
-const SYMBOL_TARGET = 'x';
-const SYMBOL_PATH = '.';
-const SYMBOL_WALL = '#';
-const SYMBOL_GRAVEL = ';';
-const SYMBOL_PORTAL_IN = '@';
-const SYMBOL_PORTAL_OUT = '*';
+enum Figure
+    { Start = 'o'
+    , Target = 'x'
+    , Path = '.'
+    , Wall = '#'
+    , Gravel = ';'
+    , PortalIn = '@'
+    , PortalOut = '*'
+    }
 
-const obstacleToSymbol = (obstacle: Obstacle): string => {
+const obstacleToFigure = (obstacle: Obstacle): Figure => {
     switch (obstacle) {
         case Obstacle.Wall: {
-            return SYMBOL_WALL;
+            return Figure.Wall;
         }
 
         case Obstacle.Gravel: {
-            return SYMBOL_GRAVEL;
+            return Figure.Gravel;
         }
 
         case Obstacle.PortalIn: {
-            return SYMBOL_PORTAL_IN;
+            return Figure.PortalIn;
         }
 
         case Obstacle.PortalOut: {
-            return SYMBOL_PORTAL_OUT;
+            return Figure.PortalOut;
         }
     }
 };
 
-const stepToSymbol = (cell: Cell): string => {
+const stepToFigure = (cell: Cell): Figure => {
     if (cell.starting) {
-        return SYMBOL_START;
+        return Figure.Start;
     }
 
     if (cell.targeting) {
-        return SYMBOL_TARGET;
+        return Figure.Target;
     }
 
-    return cell.obstacle.map(obstacleToSymbol).getOrElse(SYMBOL_PATH);
+    return cell.obstacle.map(obstacleToFigure).getOrElse(Figure.Path);
 };
 
+/**
+ * Turns a maze into string serialisation.
+ * Useful for write the result into a file.
+ */
 export const serialize = (maze: Maze): string => {
-    const symbols = maze.map(stepToSymbol);
+    const symbols = maze.map(stepToFigure);
     const lines = new Array(maze.rows());
     const N = maze.cols();
 
@@ -313,48 +362,48 @@ const initialRepresentation: Representation = {
     obstacles: Dict.empty as Dict<ID, Obstacle>
 };
 
-const processRepresentation = (id: ID, symbol: string, acc: Representation): Either<string, Representation> => {
-    switch (symbol) {
-        case SYMBOL_START: {
+const processRepresentation = (id: ID, figure: string, acc: Representation): Either<string, Representation> => {
+    switch (figure) {
+        case Figure.Start: {
             return Right({
                 ...acc,
                 start: [ ...acc.start, id ]
             });
         }
 
-        case SYMBOL_TARGET: {
+        case Figure.Target: {
             return Right({
                 ...acc,
                 target: [ ...acc.target, id ]
             });
         }
 
-        case SYMBOL_PATH: {
+        case Figure.Path: {
             return Right(acc);
         }
 
-        case SYMBOL_WALL: {
+        case Figure.Wall: {
             return Right({
                 ...acc,
                 obstacles: acc.obstacles.insert(id, Obstacle.Wall)
             });
         }
 
-        case SYMBOL_GRAVEL: {
+        case Figure.Gravel: {
             return Right({
                 ...acc,
                 obstacles: acc.obstacles.insert(id, Obstacle.Gravel)
             });
         }
 
-        case SYMBOL_PORTAL_IN: {
+        case Figure.PortalIn: {
             return Right({
                 ...acc,
                 obstacles: acc.obstacles.insert(id, Obstacle.PortalIn)
             });
         }
 
-        case SYMBOL_PORTAL_OUT: {
+        case Figure.PortalOut: {
             return Right({
                 ...acc,
                 obstacles: acc.obstacles.insert(id, Obstacle.PortalOut)
@@ -362,11 +411,15 @@ const processRepresentation = (id: ID, symbol: string, acc: Representation): Eit
         }
 
         default: {
-            return Either.Left(`Unknown symbol "${symbol}"`);
+            return Either.Left(`Unknown figure "${figure}"`);
         }
     }
 };
 
+/**
+ * Converts a string representation to maze.
+ * In case of failure goes back with an error message.
+ */
 export const deserialize = (input: string): Either<string, Maze> => {
     const rows = input.split(/\n/);
 
@@ -388,24 +441,22 @@ export const deserialize = (input: string): Either<string, Maze> => {
         return Left(`It expects no more than ${MAXIMUM_SIDE} cols but got "${N}" instead`);
     }
 
-    const symbols: Array<string> = [];
+    const figures: Array<string> = [];
 
     for (const row of rows) {
         let i = 0;
 
         while (i < row.length) {
-            symbols.push(row[ i++ ]);
+            figures.push(row[ i++ ]);
         }
 
         while (i++ < N) {
-            symbols.push(SYMBOL_PATH);
+            figures.push(Figure.Path);
         }
     }
 
-    return symbols.reduce(
-        (acc: Either<string, Representation>, symbol, id: ID) => {
-            return acc.chain(representation => processRepresentation(id, symbol, representation));
-        },
+    return figures.reduce(
+        (acc, figure, id) => acc.chain(representation => processRepresentation(id, figure, representation)),
         Right(initialRepresentation)
     ).chain(({ start, target, obstacles }) => {
         if (start.length > 1) {

@@ -7,14 +7,35 @@ import { Stack, empty } from 'Stack';
  * Gives basic methods to work with a stack.
  */
 export interface NonEmptyStack<T> {
+    /**
+     * Determine the stack is singleton or not.
+     * Takes constant time.
+     */
     isSingleton(): boolean;
 
+    /**
+     * Return latest added element.
+     * Takes constant time.
+     */
     peek(): T;
 
+    /**
+     * Adds new value to the end of the stack.
+     * Takes constant time.
+     */
     push(value: T): NonEmptyStack<T>;
 
+    /**
+     * Returns latest added element and tail if the stack is not singleton.
+     * Takes constant time.
+     */
     pop(): Maybe<[ T, NonEmptyStack<T> ]>;
 
+    /**
+     * Converts the stack into an Array.
+     * Latest element goes to the end of the array.
+     * Takes time proportional to `O(n)`.
+     */
     toArray(): Array<T>;
 }
 

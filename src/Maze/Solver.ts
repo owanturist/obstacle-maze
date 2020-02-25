@@ -22,9 +22,22 @@ const NORAML_DURATION = 1;
 const GRAVEL_DURATION = NORAML_DURATION * 2;
 const TELEPORT_DURATION = 0;
 
-
 export type Path = Array<[ number, number ]>;
 
+
+/**
+ * ImmutableWay representation.
+ *
+ * The reason why it's immutable is that each way might
+ * branch several times during the find path process,
+ * so they don't want to effect to each other while it's happening.
+ *
+ * This is a point of flexibility for path structure, for instance
+ * it might analyze how many turns the equal length ways do
+ * and put the most straight of them higher in priority.
+ * It can do the same with amount of obstacles it goes thru or
+ * any other condition.
+ */
 class Way implements Comparable<Way> {
     public static start(startLocation: [ number, number ]): Way {
         return new Way(0, 0, singleton(startLocation));
@@ -60,7 +73,11 @@ class Way implements Comparable<Way> {
         return this.path.peek();
     }
 
-    public next(duration: number, row: number, col: number): Way {
+    /**
+     * Make a brunch of the way.
+     * Takes constant time.
+     */
+    public branch(duration: number, row: number, col: number): Way {
         const inRow = this.path.pop().map(([ , prev ]) => {
             const [ prevRow, prevCol ] = prev.peek();
 
@@ -74,6 +91,10 @@ class Way implements Comparable<Way> {
         );
     }
 
+    /**
+     * Get full path of the way.
+     * Takes time proportional to `O(n)`.
+     */
     public getPath(): Path {
         return this.path.toArray();
     }
@@ -140,20 +161,20 @@ class BFS {
             case null:
             case undefined:            // Represents just a cell empty of obstacles
             case Obstacle.PortalOut: { // PortalOut might be treated like empty cell
-                return this.pq.enqueue(way.next(NORAML_DURATION, row, col));
+                return this.pq.enqueue(way.branch(NORAML_DURATION, row, col));
             }
 
             case Obstacle.Gravel: {
-                return this.pq.enqueue(way.next(GRAVEL_DURATION, row, col));
+                return this.pq.enqueue(way.branch(GRAVEL_DURATION, row, col));
             }
 
             case Obstacle.PortalIn: {
                 // PortalIn might be treated like empty cell
-                this.pq.enqueue(way.next(NORAML_DURATION, row, col));
+                this.pq.enqueue(way.branch(NORAML_DURATION, row, col));
 
                 // Schedule all PortalOuts
                 for (const [ portalRow, portalCol ] of this.portalsOut) {
-                    this.schedule(way.next(TELEPORT_DURATION, row, col), portalRow, portalCol);
+                    this.schedule(way.branch(TELEPORT_DURATION, row, col), portalRow, portalCol);
                 }
             }
         }

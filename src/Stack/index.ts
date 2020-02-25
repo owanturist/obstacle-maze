@@ -18,7 +18,7 @@ export interface Stack<T> {
     peek(): Maybe<T>;
 
     /**
-     * Adds a new value to the stack start.
+     * Adds new value to the end of the stack.
      * Takes constant time.
      */
     push(value: T): Stack<T>;
@@ -30,7 +30,7 @@ export interface Stack<T> {
     pop(): Maybe<[ T, Stack<T> ]>;
 
     /**
-     * Converts the stack to an Array.
+     * Converts the stack into an Array.
      * Latest element goes to the end of the array.
      * Takes time proportional to `O(n)`.
      */
