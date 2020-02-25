@@ -69,6 +69,10 @@ class Way implements Comparable<Way> {
         return Order.EQ;
     }
 
+    /**
+     * Returns current coordinates of the way.
+     * Takes constant time.
+     */
     public coordinates(): [ number, number ] {
         return this.path.peek();
     }
@@ -116,6 +120,9 @@ class BFS {
     private readonly portalsOut: Array<[ number, number ]>;
     private readonly pq: PriorityQueue<Way> = emptyPriorityQueue();
 
+    /**
+     * Construction takes time proportional to `O(n)`.
+     */
     public constructor(
         private readonly start: [ number, number ],
         private readonly target: [ number, number ],
@@ -138,18 +145,35 @@ class BFS {
         this.visit(start[ 0 ], start[ 1 ]);
     }
 
+    /**
+     * Checking if the cell has been inspected already.
+     * Takes constant time.
+     */
     private isVisited(row: number, col: number): boolean {
         return this.visited[ this.cols * row + col ];
     }
 
+    /**
+     * Mark the cell as inspected.
+     * Takes constant time.
+     */
     private visit(row: number, col: number): void {
         this.visited[ this.cols * row + col ] = true;
     }
 
+    /**
+     * Determine is the cell is target or not.
+     * Takes constant time.
+     */
     private isTarget(row: number, col: number): boolean {
         return this.target[ 0 ] === row && this.target[ 1 ] === col;
     }
 
+    /**
+     * Puts way into priority queue for the future inspection.
+     * Out of range and inspected cells are ignored.
+     * Takes time proportional to `O(log n)`
+     */
     private schedule(way: Way, row: number, col: number): void {
         if (col < 0 || col >= this.cols
             || row < 0 || row >= this.rows
@@ -181,6 +205,10 @@ class BFS {
         }
     }
 
+    /**
+     * Schedules neighbour cells for the future inspection.
+     * Takes time proportional to `O(log n)`.
+     */
     private lookup(way: Way): void {
         const [ row, col ] = way.coordinates();
 
@@ -190,6 +218,11 @@ class BFS {
         this.schedule(way, row    , col - 1);  // left
     }
 
+    /**
+     * Finds the sortest path between `start` and `target` locations.
+     * In case there is no path returns `Nothing`.
+     * Takes time proportional to `O(n*log n)`.
+     */
     public findShortestPaths(): Maybe<Path> {
         this.lookup(Way.start(this.start));
 
