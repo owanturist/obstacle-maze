@@ -3,13 +3,35 @@ import {
     Comparable
 } from 'frctl/Basics';
 
+/**
+ * Mutable PriorityQueue.
+ * Represents basic operations to build a queue of elements by priority.
+ */
 export interface PriorityQueue<T extends Comparable<T>> {
+    /**
+     * Determine the queu is empty or not.
+     * Takes constant time.
+     */
     isEmpty(): boolean;
 
+    /**
+     * Returns size of the queue.
+     * Takes constant time.
+     */
     size(): number;
 
+    /**
+     * Adds new item to the queue.
+     * Position depends on priority from `item.compareTo`.
+     * Takes time proportional to `O(log n)`.
+     */
     enqueue(item: T): void;
 
+    /**
+     * Returns highest priority element.
+     *
+     * @throws RangeError in case the queue is empty.
+     */
     dequeue(): T;
 }
 

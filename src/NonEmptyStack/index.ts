@@ -1,6 +1,11 @@
 import Maybe from 'frctl/Maybe';
 import { Stack, empty } from 'Stack';
 
+
+/**
+ * Represents immutable Non Empty Stack.
+ * Gives basic methods to work with a stack.
+ */
 export interface NonEmptyStack<T> {
     isSingleton(): boolean;
 

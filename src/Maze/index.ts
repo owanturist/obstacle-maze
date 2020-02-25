@@ -44,6 +44,11 @@ export type Cell = Readonly<{
     obstacle: Maybe<Obstacle>;
 }>;
 
+/**
+ * Immutable Maze.
+ * Represents a grid rows×cols dimention.
+ * Allows add obstacles and setup start/target locations by time proportional `O(log n)`.
+ */
 export interface Maze {
 
     // Q U E R I E S

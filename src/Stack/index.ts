@@ -1,14 +1,39 @@
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
 
+/**
+ * Represents immutable Stack.
+ * Gives basic methods to work with a stack.
+ */
 export interface Stack<T> {
+    /**
+     * Determine the stack is empty or not.
+     * Takes constant time.
+     */
     isEmpty(): boolean;
 
+    /**
+     * Returns latest added element if the stack is not empty.
+     * Takes constant time.
+     */
     peek(): Maybe<T>;
 
+    /**
+     * Adds a new value to the stack start.
+     * Takes constant time.
+     */
     push(value: T): Stack<T>;
 
+    /**
+     * Returns latest added element and tail if the stack is not empty.
+     * Takes constant time.
+     */
     pop(): Maybe<[ T, Stack<T> ]>;
 
+    /**
+     * Converts the stack to an Array.
+     * Latest element goes to the end of the array.
+     * Takes time proportional to `O(n)`.
+     */
     toArray(): Array<T>;
 }
 
