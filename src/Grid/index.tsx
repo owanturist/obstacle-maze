@@ -120,26 +120,24 @@ export type Model = Readonly<{
     solution: Maybe<Set<Maze.ID>>;
 }>;
 
-export const initWithMaze = (maze: Maze.Maze): Model => ({
+export const init = (maze: Maze.Maze): Model => ({
     mode: AddObstacle(Maze.Obstacle.Wall),
     multiple: Nothing,
     history: initHistory(maze),
     solution: Nothing
 });
 
-export const initEmpty = (rows: number, cols: number): Model => initWithMaze(Maze.empty(rows, cols));
-
 // U P D A T E
 
 export interface Msg extends Utils.Msg<[ Model ], [ Model, Cmd<Msg> ]> {}
 
-const NoOp = Utils.inst(class NoOp implements Msg {
+export const NoOp = Utils.inst(class NoOp implements Msg {
     public update(model: Model): [ Model, Cmd<Msg> ] {
         return [ model, Cmd.none ];
     }
 });
 
-const SetMode = Utils.cons(class SetMode implements Msg {
+export const SetMode = Utils.cons(class SetMode implements Msg {
     public constructor(private readonly mode: Mode) {}
 
     public update(model: Model): [ Model, Cmd<Msg> ] {
@@ -153,68 +151,7 @@ const SetMode = Utils.cons(class SetMode implements Msg {
     }
 });
 
-const StopMultiple = Utils.inst(class StopMultiple implements Msg {
-    public update(model: Model): [ Model, Cmd<Msg> ] {
-        return [
-            {
-                ...model,
-                multiple: Nothing,
-                history: model.multiple.map(maze => model.history.push(maze)).getOrElse(model.history)
-            },
-            Cmd.none
-        ];
-    }
-});
-
-const ClearMaze = Utils.inst(class ClearMaze implements Msg {
-    public update(model: Model): [ Model, Cmd<Msg> ] {
-        return [
-            {
-                ...model,
-                history: model.history.push(model.history.getCurrent().clear()),
-                solution: Nothing
-            },
-            Cmd.none
-        ];
-    }
-});
-
-const Solve = Utils.inst(class Solve implements Msg {
-    public update(model: Model): [ Model, Cmd<Msg> ] {
-        const maze = model.history.getCurrent();
-        const cols = maze.cols();
-
-        return maze.setup().cata({
-            Nothing: () => [
-                {
-                    ...model,
-                    solution: Nothing
-                },
-                Toast.warning('Please setup both starting and targeting locations').show()
-            ],
-
-            Just: setup => Solver.solve(setup).cata({
-                Nothing: () => [
-                    {
-                        ...model,
-                        solution: Nothing
-                    },
-                    Toast.info('There is not path between starting and targeting locations').show()
-                ],
-
-                Just: path => [
-                    {
-                        ...model,
-                        solution: Set.fromList(path.map(([ row, col ]) => row * cols + col)).tap(Just)
-                    },
-                    Cmd.none
-                ]
-            })
-        });
-    }
-});
-
-const EditCell = Utils.cons(class EditCell implements Msg {
+export const EditCell = Utils.cons(class EditCell implements Msg {
     public constructor(private readonly id: Maze.ID) {}
 
     public update(model: Model): [ Model, Cmd<Msg> ] {
@@ -250,7 +187,33 @@ const EditCell = Utils.cons(class EditCell implements Msg {
     }
 });
 
-const Undo = Utils.inst(class Undo implements Msg {
+export const StopMultiple = Utils.inst(class StopMultiple implements Msg {
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [
+            model.multiple.map((maze): Model => ({
+                ...model,
+                multiple: Nothing,
+                history: model.history.push(maze)
+            })).getOrElse(model),
+            Cmd.none
+        ];
+    }
+});
+
+export const ClearMaze = Utils.inst(class ClearMaze implements Msg {
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [
+            {
+                ...model,
+                history: model.history.push(model.history.getCurrent().clear()),
+                solution: Nothing
+            },
+            Cmd.none
+        ];
+    }
+});
+
+export const Undo = Utils.inst(class Undo implements Msg {
     public update(model: Model): [ Model, Cmd<Msg> ] {
         return [
             {
@@ -263,7 +226,7 @@ const Undo = Utils.inst(class Undo implements Msg {
     }
 });
 
-const Redo = Utils.inst(class Redo implements Msg {
+export const Redo = Utils.inst(class Redo implements Msg {
     public update(model: Model): [ Model, Cmd<Msg> ] {
         return [
             {
@@ -276,7 +239,42 @@ const Redo = Utils.inst(class Redo implements Msg {
     }
 });
 
-const SaveAsFile = Utils.inst(class SaveAsFile implements Msg {
+export const Solve = Utils.inst(class Solve implements Msg {
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        const maze = model.history.getCurrent();
+        const cols = maze.cols();
+
+        return maze.setup().cata({
+            Nothing: () => [
+                {
+                    ...model,
+                    solution: Nothing
+                },
+                Toast.warning('Please setup both starting and targeting locations').show()
+            ],
+
+            Just: setup => Solver.solve(setup).cata({
+                Nothing: () => [
+                    {
+                        ...model,
+                        solution: Nothing
+                    },
+                    Toast.info('There is not path between starting and targeting locations').show()
+                ],
+
+                Just: path => [
+                    {
+                        ...model,
+                        solution: Set.fromList(path.map(([ row, col ]) => row * cols + col)).tap(Just)
+                    },
+                    Cmd.none
+                ]
+            })
+        });
+    }
+});
+
+export const SaveAsFile = Utils.inst(class SaveAsFile implements Msg {
     public update(model: Model): [ Model, Cmd<Msg> ] {
         const maze = model.history.getCurrent();
 

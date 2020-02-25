@@ -62,7 +62,7 @@ const ConfiguratorMsg = Utils.cons(class ConfiguratorMsg$ implements Msg {
 
                 Configured: maze => [
                     {
-                        screen: GridScreen(Grid.initWithMaze(maze))
+                        screen: GridScreen(Grid.init(maze))
                     },
                     Cmd.none
                 ]
