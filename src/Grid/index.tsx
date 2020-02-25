@@ -646,7 +646,7 @@ export class View extends React.PureComponent<{
     dispatch: Dispatch<Msg>;
 }> {
     private readonly onStopMultiple = () => {
-        if (this.props.model.multiple) {
+        if (this.props.model.multiple.isJust()) {
             this.props.dispatch(StopMultiple);
         }
     }

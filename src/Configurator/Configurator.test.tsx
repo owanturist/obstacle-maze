@@ -79,17 +79,23 @@ it('Configurator.ReadMaze', () => {
     });
 });
 
-it('Configurator.InitEmpty triggers by button', () => {
+describe('Configurator.View', () => {
     const dispatch = jest.fn<void, [ Configurator.Msg ]>();
 
-    const wrapper = Enzyme.shallow(
-        <Configurator.View
-            model={Configurator.initial}
-            dispatch={dispatch}
-        />
-    );
+    beforeEach(() => {
+        dispatch.mockReset();
+    });
 
-    wrapper.find('StyledStartButton').simulate('click');
+    it('Configurator.InitEmpty triggers by button', () => {
+        const wrapper = Enzyme.shallow(
+            <Configurator.View
+                model={Configurator.initial}
+                dispatch={dispatch}
+            />
+        );
 
-    expect(dispatch).toBeCalledWith(Configurator.InitEmpty);
+        wrapper.find('StyledStartButton').simulate('click');
+
+        expect(dispatch).toBeCalledWith(Configurator.InitEmpty);
+    });
 });
