@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 10
+    commands:
+      - echo Entered the install phase...
+      - npm install
+
+  pre_build:
+    commands:
+      - echo Entered the pre_build phase...
+      - npm run lint
+      - CI=true npm run test
+
+  build:
+    commands:
+      - echo Entered the build phase...
+      - npm run build
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+
+artifacts:
+  base-directory: 'build'
+  files:
+    - '**/*'
+
