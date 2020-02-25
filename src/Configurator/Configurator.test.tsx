@@ -1,3 +1,5 @@
+import React from 'react';
+import Enzyme from 'enzyme';
 import Maybe from 'frctl/Maybe';
 import Either from 'frctl/Either';
 
@@ -75,4 +77,19 @@ it('Configurator.ReadMaze', () => {
 
         _: () => fail('Should return Configured')
     });
+});
+
+it('Configurator.InitEmpty triggers by button', () => {
+    const dispatch = jest.fn<void, [ Configurator.Msg ]>();
+
+    const wrapper = Enzyme.shallow(
+        <Configurator.View
+            model={Configurator.initial}
+            dispatch={dispatch}
+        />
+    );
+
+    wrapper.find('StyledStartButton').simulate('click');
+
+    expect(dispatch).toBeCalledWith(Configurator.InitEmpty);
 });

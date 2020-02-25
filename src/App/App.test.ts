@@ -6,71 +6,65 @@ import * as Maze from '../Maze';
 import * as App from './index';
 
 const FakeMsg = {
-    update: (): any => {
-        throw new Error('unhandled');
-    }
+    update: jest.fn()
 };
-
-const fakeMsgUpdate = jest.spyOn(FakeMsg, 'update');
 
 const FakeCmd = {
-    map: (): any => {
-        throw new Error('unhandled');
-    }
+    map: jest.fn()
 };
 
-const fakeCmdMap = jest.spyOn(FakeCmd, 'map');
-
 beforeEach(() => {
-    fakeMsgUpdate.mockReset();
-    fakeCmdMap.mockReset();
+    FakeMsg.update.mockReset();
+    FakeCmd.map.mockReset();
 });
 
 describe('App.ConfiguratorMsg', () => {
     it('Ignore non ConfiguratorScreen', () => {
         const initialModel = {
-            screen: App.GridScreen('Fake Grid')
+            screen: App.GridScreen('Fake Grid' as any)
         };
 
         const [ nextModel, cmd ] = App.ConfiguratorMsg(FakeMsg).update(initialModel);
 
         expect(nextModel).toEqual({
-            screen: App.GridScreen('Fake Grid')
+            screen: App.GridScreen('Fake Grid' as any)
         });
         expect(nextModel).toBe(initialModel);
         expect(cmd).toBe(Cmd.none);
-        expect(fakeMsgUpdate).not.toBeCalled();
+        expect(FakeMsg.update).not.toBeCalled();
     });
 
     it('Configurator.Updated', () => {
         const initialModel = {
-            screen: App.ConfiguratorScreen('Fake Configurator')
+            screen: App.ConfiguratorScreen('Fake Configurator' as any)
         };
 
-        fakeMsgUpdate.mockReturnValueOnce(Configurator.Updated('Next fake Configurator', FakeCmd));
-        fakeCmdMap.mockReturnValueOnce('Fake Cmd');
+        FakeMsg.update.mockReturnValueOnce(
+            Configurator.Updated('Next fake Configurator' as any, FakeCmd as any)
+        );
+        FakeCmd.map.mockReturnValueOnce('Fake Cmd');
 
         expect(App.ConfiguratorMsg(FakeMsg).update(initialModel)).toEqual([
             {
-                screen: App.ConfiguratorScreen('Next fake Configurator')
+                screen: App.ConfiguratorScreen('Next fake Configurator' as any)
             },
             'Fake Cmd'
         ]);
 
-        expect(fakeMsgUpdate).toBeCalledTimes(1);
-        expect(fakeMsgUpdate).toBeCalledWith('Fake Configurator');
+        expect(FakeMsg.update).toBeCalledTimes(1);
+        expect(FakeMsg.update).toBeCalledWith('Fake Configurator');
 
-        expect(fakeCmdMap).toBeCalledTimes(1);
-        expect(fakeCmdMap).toBeCalledWith(App.ConfiguratorMsg);
+        expect(FakeCmd.map).toBeCalledTimes(1);
+        expect(FakeCmd.map).toBeCalledWith(App.ConfiguratorMsg);
     });
 
     it('Configurator.Configured', () => {
         const initialModel = {
-            screen: App.ConfiguratorScreen('Fake Configurator')
+            screen: App.ConfiguratorScreen('Fake Configurator' as any)
         };
         const maze = Maze.empty(20, 10);
 
-        fakeMsgUpdate.mockReturnValueOnce(Configurator.Configured(maze));
+        FakeMsg.update.mockReturnValueOnce(Configurator.Configured(maze));
 
         const [ nextModel, cmd ] = App.ConfiguratorMsg(FakeMsg).update(initialModel);
         expect(nextModel).toEqual({
@@ -78,48 +72,48 @@ describe('App.ConfiguratorMsg', () => {
         });
         expect(cmd).toBe(Cmd.none);
 
-        expect(fakeMsgUpdate).toBeCalledTimes(1);
-        expect(fakeMsgUpdate).toBeCalledWith('Fake Configurator');
+        expect(FakeMsg.update).toBeCalledTimes(1);
+        expect(FakeMsg.update).toBeCalledWith('Fake Configurator');
 
-        expect(fakeCmdMap).not.toBeCalled();
+        expect(FakeCmd.map).not.toBeCalled();
     });
 });
 
 describe('App.GridMsg', () => {
     it('Ignore non GridScreen', () => {
         const initialModel = {
-            screen: App.ConfiguratorScreen('Fake Configurator')
+            screen: App.ConfiguratorScreen('Fake Configurator' as any)
         };
 
         const [ nextModel, cmd ] = App.GridMsg(FakeMsg).update(initialModel);
 
         expect(nextModel).toEqual({
-            screen: App.ConfiguratorScreen('Fake Configurator')
+            screen: App.ConfiguratorScreen('Fake Configurator' as any)
         });
         expect(nextModel).toBe(initialModel);
         expect(cmd).toBe(Cmd.none);
-        expect(fakeMsgUpdate).not.toBeCalled();
+        expect(FakeMsg.update).not.toBeCalled();
     });
 
     it('Update GridScreen', () => {
         const initialModel = {
-            screen: App.GridScreen('Fake Grid')
+            screen: App.GridScreen('Fake Grid' as any)
         };
 
-        fakeMsgUpdate.mockReturnValueOnce([ 'Next fake Grid', FakeCmd ]);
-        fakeCmdMap.mockReturnValueOnce('Fake Cmd');
+        FakeMsg.update.mockReturnValueOnce([ 'Next fake Grid', FakeCmd ]);
+        FakeCmd.map.mockReturnValueOnce('Fake Cmd');
 
         expect(App.GridMsg(FakeMsg).update(initialModel)).toEqual([
             {
-                screen: App.GridScreen('Next fake Grid')
+                screen: App.GridScreen('Next fake Grid' as any)
             },
             'Fake Cmd'
         ]);
 
-        expect(fakeMsgUpdate).toBeCalledTimes(1);
-        expect(fakeMsgUpdate).toBeCalledWith('Fake Grid');
+        expect(FakeMsg.update).toBeCalledTimes(1);
+        expect(FakeMsg.update).toBeCalledWith('Fake Grid');
 
-        expect(fakeCmdMap).toBeCalledTimes(1);
-        expect(fakeCmdMap).toBeCalledWith(App.GridMsg);
+        expect(FakeCmd.map).toBeCalledTimes(1);
+        expect(FakeCmd.map).toBeCalledWith(App.GridMsg);
     });
 });
