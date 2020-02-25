@@ -134,6 +134,7 @@ class BFS {
             }
         }
 
+        // it doesn't need to visit the starting location
         this.visit(start[ 0 ], start[ 1 ]);
     }
 
@@ -216,11 +217,7 @@ class BFS {
  * We trust the Maze flow so `setup` is valid.
  */
 export const solve = (setup: Setup): Maybe<Path> => {
-    const bfs = new BFS(
-        setup.start,
-        setup.target,
-        setup.obstacles
-    );
+    const bfs = new BFS(setup.start, setup.target, setup.obstacles);
 
     return bfs.findShortestPaths();
 };
