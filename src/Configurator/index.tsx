@@ -39,7 +39,7 @@ export interface Stage {
     cata<R>(pattern: StagePattern<R>): R;
 }
 
-const Updated = Utils.cons(class Updated implements Stage {
+export const Updated = Utils.cons(class Updated implements Stage {
     public constructor(
         private readonly model: Model,
         private readonly cmd: Cmd<Msg>
@@ -50,7 +50,7 @@ const Updated = Utils.cons(class Updated implements Stage {
     }
 });
 
-const Configured = Utils.cons(class Configured implements Stage {
+export const Configured = Utils.cons(class Configured implements Stage {
     public constructor(private readonly maze: Maze.Maze) {}
 
     public cata<R>(pattern: StagePattern<R>): R {

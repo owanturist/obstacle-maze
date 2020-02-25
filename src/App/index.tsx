@@ -10,16 +10,16 @@ import * as Utils from 'Utils';
 
 // M O D E L
 
-type ScreenPattern<R> = Cata<{
+export type ScreenPattern<R> = Cata<{
     ConfiguratorScreen(configurator: Configurator.Model): R;
     GridScreen(grid: Grid.Model): R;
 }>;
 
-interface Screen {
+export interface Screen {
     cata<R>(pattern: ScreenPattern<R>): R;
 }
 
-const ConfiguratorScreen = Utils.cons(class ConfiguratorScreen implements Screen {
+export const ConfiguratorScreen = Utils.cons(class ConfiguratorScreen implements Screen {
     public constructor(private readonly configurator: Configurator.Model) {}
 
     public cata<R>(pattern: ScreenPattern<R>): R {
@@ -27,7 +27,7 @@ const ConfiguratorScreen = Utils.cons(class ConfiguratorScreen implements Screen
     }
 });
 
-const GridScreen = Utils.cons(class GridScreen implements Screen {
+export const GridScreen = Utils.cons(class GridScreen implements Screen {
     public constructor(private readonly grid: Grid.Model) {}
 
     public cata<R>(pattern: ScreenPattern<R>): R {
@@ -47,7 +47,7 @@ export const initial: Model = {
 
 export interface Msg extends Utils.Msg<[ Model ], [ Model, Cmd<Msg> ]> {}
 
-const ConfiguratorMsg = Utils.cons(class ConfiguratorMsg$ implements Msg {
+export const ConfiguratorMsg = Utils.cons(class ConfiguratorMsg$ implements Msg {
     public constructor(private readonly msg: Configurator.Msg) {}
 
     public update(model: Model): [ Model, Cmd<Msg> ] {
@@ -73,7 +73,7 @@ const ConfiguratorMsg = Utils.cons(class ConfiguratorMsg$ implements Msg {
     }
 });
 
-const GridMsg = Utils.cons(class GridMsg$ implements Msg {
+export const GridMsg = Utils.cons(class GridMsg$ implements Msg {
     public constructor(private readonly msg: Grid.Msg) {}
 
     public update(model: Model): [ Model, Cmd<Msg> ] {
