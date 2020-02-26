@@ -16,9 +16,9 @@ ox
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 1,
-        length: 1,
-        weight: 1,
+        grounds: 0,
+        length: 0,
+        weight: 0,
         path: [
             [ 0, 0 ],
             [ 0, 1 ]
@@ -31,9 +31,9 @@ x.
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 1,
-        length: 1,
-        weight: 1,
+        grounds: 0,
+        length: 0,
+        weight: 0,
         path: [
             [ 0, 0 ],
             [ 1, 0 ]
@@ -49,9 +49,9 @@ o.x
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 2,
-        length: 2,
-        weight: 2,
+        grounds: 1,
+        length: 1,
+        weight: 1,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -65,9 +65,9 @@ x..
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 2,
-        length: 2,
-        weight: 2,
+        grounds: 1,
+        length: 1,
+        weight: 1,
         path: [
             [ 0, 0 ],
             [ 1, 0 ],
@@ -84,9 +84,9 @@ it('Maze.Solver non of obstacles, big gap between in a row', () => {
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 6,
-        length: 6,
-        weight: 6,
+        grounds: 5,
+        length: 5,
+        weight: 5,
         path: [
             [ 1, 2 ],
             [ 1, 3 ],
@@ -106,9 +106,9 @@ o.
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 2,
-        length: 2,
-        weight: 2,
+        grounds: 1,
+        length: 1,
+        weight: 1,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -125,9 +125,9 @@ o....
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 6,
-        length: 6,
-        weight: 6,
+        grounds: 5,
+        length: 5,
+        weight: 5,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -146,9 +146,9 @@ o....
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 6,
-        length: 6,
-        weight: 6,
+        grounds: 5,
+        length: 5,
+        weight: 5,
         path: [
             [ 2, 0 ],
             [ 2, 1 ],
@@ -167,9 +167,9 @@ x....
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 6,
-        length: 6,
-        weight: 6,
+        grounds: 5,
+        length: 5,
+        weight: 5,
         path: [
             [ 2, 4 ],
             [ 2, 3 ],
@@ -188,9 +188,9 @@ x....
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 6,
-        length: 6,
-        weight: 6,
+        grounds: 5,
+        length: 5,
+        weight: 5,
         path: [
             [ 0, 4 ],
             [ 0, 3 ],
@@ -231,9 +231,9 @@ o;;;;;
     `)).toEqual(Either.Right({
         gravels: 6,
         portals: 0,
-        grounds: 1,
-        length: 7,
-        weight: 13,
+        grounds: 0,
+        length: 6,
+        weight: 12,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -255,9 +255,9 @@ o@@@@@
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 7,
-        length: 7,
-        weight: 7,
+        grounds: 6,
+        length: 6,
+        weight: 6,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -279,9 +279,9 @@ o*****
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 7,
-        length: 7,
-        weight: 7,
+        grounds: 6,
+        length: 6,
+        weight: 6,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -305,9 +305,9 @@ it('Maze.Solver gravel is slower', () => {
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 6,
-        length: 6,
-        weight: 6,
+        grounds: 5,
+        length: 5,
+        weight: 5,
         path: [
             [ 2, 1 ],
             [ 1, 1 ],
@@ -327,9 +327,9 @@ x;;;o
     `)).toEqual(Either.Right({
         gravels: 3,
         portals: 0,
-        grounds: 1,
-        length: 4,
-        weight: 7,
+        grounds: 0,
+        length: 3,
+        weight: 6,
         path: [
             [ 0, 4 ],
             [ 0, 3 ],
@@ -347,9 +347,9 @@ x;;;;
     `)).toEqual(Either.Right({
         gravels: 3,
         portals: 0,
-        grounds: 2,
-        length: 5,
-        weight: 8,
+        grounds: 1,
+        length: 4,
+        weight: 7,
         path: [
             [ 1, 4 ],
             [ 1, 3 ],
@@ -368,9 +368,9 @@ x;;;;
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 8,
-        length: 8,
-        weight: 8,
+        grounds: 7,
+        length: 7,
+        weight: 7,
         path: [
             [ 2, 4 ],
             [ 3, 4 ],
@@ -393,9 +393,9 @@ o..
     `)).toEqual(Either.Right({
         gravels: 3,
         portals: 0,
-        grounds: 1,
-        length: 4,
-        weight: 7,
+        grounds: 0,
+        length: 3,
+        weight: 6,
         path: [
             [ 4, 0 ],
             [ 3, 0 ],
@@ -413,9 +413,9 @@ x...
     `)).toEqual(Either.Right({
         gravels: 3,
         portals: 0,
-        grounds: 1,
-        length: 4,
-        weight: 7,
+        grounds: 0,
+        length: 3,
+        weight: 6,
         path: [
             [ 3, 1 ],
             [ 3, 0 ],
@@ -432,9 +432,9 @@ x...
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 6,
-        length: 6,
-        weight: 6,
+        grounds: 5,
+        length: 5,
+        weight: 5,
         path: [
             [ 2, 2 ],
             [ 2, 3 ],
@@ -455,9 +455,9 @@ ox
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 1,
-        length: 1,
-        weight: 1,
+        grounds: 0,
+        length: 0,
+        weight: 0,
         path: [
             [ 0, 0 ],
             [ 0, 1 ]
@@ -470,9 +470,9 @@ o...x
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 1,
-        grounds: 1,
-        length: 2,
-        weight: 2,
+        grounds: 0,
+        length: 1,
+        weight: 1,
         path: [
             [ 0, 0 ],
             [ 1, 0 ],
@@ -488,9 +488,9 @@ o.....x..*
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 1,
-        grounds: 4,
-        length: 5,
-        weight: 5,
+        grounds: 3,
+        length: 4,
+        weight: 4,
         path: [
             [ 0, 0 ],
             [ 1, 0 ],
@@ -516,9 +516,9 @@ x..
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 1,
-        grounds: 4,
-        length: 5,
-        weight: 5,
+        grounds: 3,
+        length: 4,
+        weight: 4,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -537,9 +537,9 @@ o...x..*
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 4,
-        length: 4,
-        weight: 4,
+        grounds: 3,
+        length: 3,
+        weight: 3,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -561,9 +561,9 @@ x..
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 4,
-        length: 4,
-        weight: 4,
+        grounds: 3,
+        length: 3,
+        weight: 3,
         path: [
             [ 0, 0 ],
             [ 1, 0 ],
@@ -580,9 +580,9 @@ o@............
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 1,
-        grounds: 8,
-        length: 9,
-        weight: 9,
+        grounds: 7,
+        length: 8,
+        weight: 8,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -605,9 +605,9 @@ o@...........
     `)).toEqual(Either.Right({
         gravels: 3,
         portals: 1,
-        grounds: 1,
-        length: 5,
-        weight: 8,
+        grounds: 0,
+        length: 4,
+        weight: 7,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -626,9 +626,9 @@ o@...........
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 6,
-        length: 6,
-        weight: 6,
+        grounds: 5,
+        length: 5,
+        weight: 5,
         path: [
             [ 0, 0 ],
             [ 0, 1 ],
@@ -656,9 +656,9 @@ o#...#...
     `)).toEqual(Either.Right({
         gravels: 0,
         portals: 0,
-        grounds: 53,
-        length: 53,
-        weight: 53,
+        grounds: 52,
+        length: 52,
+        weight: 52,
         path: [
             [ 0, 0 ],
             [ 1, 0 ],

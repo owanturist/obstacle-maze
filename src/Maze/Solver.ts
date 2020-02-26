@@ -20,7 +20,7 @@ import {
 
 /**
  * Represent a path details with path itself.
- * *Note:* length does not count starting and portal outs locations.
+ * *Note:* length does not count starting, targeting and portal outs locations.
  */
 export type Solution = Readonly<{
     grounds: number;
@@ -153,10 +153,11 @@ class Way implements Comparable<Way> {
         return {
             gravels: this.gravels,
             portals: this.portals,
-            grounds: this.grounds,
-            weight: this.weight,
-            // does not count starting and portals
-            length: path.length - 1 - this.portals,
+            // drop targeting
+            grounds: this.grounds - 1,
+            weight: this.weight - Way.GROUND_WEIGHT,
+            // does not count starting, targeting and portals
+            length: path.length - 2 - this.portals,
             path
         };
     }
