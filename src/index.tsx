@@ -6,7 +6,8 @@ import ReactDOM from 'react-dom';
 import { ToastContainer } from 'react-toastify';
 import { Cmd, Sub } from 'frctl';
 import Provider from 'Provider';
-import * as App from 'App';
+// import * as App from 'App';
+import * as App from 'App/Fun';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(

@@ -371,10 +371,7 @@ class ViewCell extends React.Component<ViewCellProps> {
     public shouldComponentUpdate(nextProps: ViewCellProps): boolean {
         const { props } = this;
 
-        return props.inPath !== nextProps.inPath
-            || props.dispatch !== nextProps.dispatch
-            || !props.step.isEqual(nextProps.step)
-            ;
+        return props.inPath !== nextProps.inPath || !props.step.isEqual(nextProps.step);
     }
 
     public render() {
