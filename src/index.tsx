@@ -7,7 +7,7 @@ import { ToastContainer } from 'react-toastify';
 import { Cmd } from 'frctl';
 import Provider from 'Provider';
 // import * as App from 'App';
-import * as App from 'App/Fun';
+import * as App from 'App/Fun'; // The Fun component show how powerfull frctl is
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(

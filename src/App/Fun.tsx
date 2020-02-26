@@ -7,19 +7,23 @@ import styled from 'styled-components';
 import { Cmd, Sub } from 'frctl';
 import Dict from 'frctl/Dict';
 import * as BrowserEvents from 'frctl/Browser/Events';
+import Maybe, { Nothing, Just } from 'frctl/Maybe';
 import Decode from 'frctl/Json/Decode';
 import { Dispatch } from 'Provider';
 
 import * as App from './index';
+import * as Toast from 'Toast';
 import * as Utils from 'Utils';
 
 // M O D E L
 
 export type Model = Readonly<{
+    notFunFor: Maybe<number>;
     apps: Dict<number, App.Model>;
 }>;
 
 export const initial: Model = {
+    notFunFor: Just(4),
     apps: Dict.empty as Dict<number, App.Model>
 };
 
@@ -47,19 +51,45 @@ const AppMsg = Utils.cons(class AppMsg$ implements Msg {
     }
 });
 
-const KeyPress = Utils.cons(class KeyPress implements Msg {
-    public constructor(protected readonly key: string) {}
-
+const FunKeyPress = Utils.inst(class FunKeyPress implements Msg {
     public update(model: Model): [ Model, Cmd<Msg> ] {
-        return [ model, Cmd.none ];
+        return model.notFunFor.cata({
+            Nothing: () => [ model, Cmd.none ],
+
+            Just: countdown => countdown === 1 ? [
+                {
+                    ...model,
+                    notFunFor: Nothing
+                },
+                Toast.success('Welcome to the Fun mode. Enjoy!').show()
+            ] : [
+                {
+                    ...model,
+                    notFunFor: Just(countdown - 1)
+                },
+                Toast.info(`Push it ${countdown - 1} more times...`).show()
+            ]
+        });
     }
 });
 
 // S U B S C R I P T I O N S
 
-export const subscriptions = (_model: Model): Sub<Msg> => {
-    return BrowserEvents.onKeyPress(Decode.field('key').string.map(KeyPress));
-}
+export const subscriptions = (model: Model): Sub<Msg> => {
+    if (model.notFunFor.isNothing()) {
+        return Sub.none;
+    }
+
+    return BrowserEvents.onKeyPress(
+        Decode.field('key').string.chain(key => {
+            if (key === '4') {
+                return Decode.succeed(FunKeyPress);
+            }
+
+            return Decode.fail('Not funny key');
+        })
+    );
+};
 
 // V I E W
 
@@ -82,30 +112,28 @@ export class View extends React.PureComponent<{
     model: Model;
     dispatch: Dispatch<Msg>;
 }> {
-    private static IDS: Array<number> = [ 0, 1, 2, 3 ];
-
-    private readonly appDispatch = Dict.fromList(
-        View.IDS.map((id): [ number, Dispatch<App.Msg> ] => [
-            id,
-            msg => this.props.dispatch(AppMsg(id, msg))
-        ])
-    );
-
     public render() {
+        const { model, dispatch } = this.props;
+
+        if (model.notFunFor.isJust()) {
+            return (
+                <App.View
+                    model={model.apps.get(0).getOrElse(App.initial)}
+                    dispatch={msg => dispatch(AppMsg(0, msg))}
+                />
+            );
+        }
+
         return (
             <StyledRoot>
-                {View.IDS.map(id => this.appDispatch.get(id).cata({
-                    Nothing: () => null,
-
-                    Just: dispatch => (
-                        <StyledApp key={id}>
-                            <App.View
-                                model={this.props.model.apps.get(id).getOrElse(App.initial)}
-                                dispatch={dispatch}
-                            />
-                        </StyledApp>
-                    )
-                }))}
+                {[ 0, 1, 2, 3 ].map(id => (
+                    <StyledApp key={id}>
+                        <App.View
+                            model={model.apps.get(id).getOrElse(App.initial)}
+                            dispatch={msg => dispatch(AppMsg(id, msg))}
+                        />
+                    </StyledApp>
+                ))}
             </StyledRoot>
         );
     }

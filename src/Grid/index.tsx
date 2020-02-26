@@ -408,12 +408,23 @@ const StyledGrid = styled.div<StyledGridProps>`
     }
 `;
 
-class ViewGrid extends React.PureComponent<{
+interface ViewGridProps {
     multiple: boolean;
     maze: Maze.Maze;
     path: Set<Maze.ID>;
     dispatch: Dispatch<Msg>;
-}> {
+}
+
+class ViewGrid extends React.Component<ViewGridProps> {
+    public shouldComponentUpdate(nextProps: ViewGridProps): boolean {
+        const { props } = this;
+
+        return props.multiple !== nextProps.multiple
+            || props.maze !== nextProps.maze
+            || props.path !== nextProps.path
+            ;
+    }
+
     public render() {
         const { multiple, maze, path, dispatch } = this.props;
 
@@ -635,10 +646,16 @@ const StyledRoot = styled.div`
     font-size: 14px;
 `;
 
-export class View extends React.PureComponent<{
+interface ViewProps {
     model: Model;
     dispatch: Dispatch<Msg>;
-}> {
+}
+
+export class View extends React.Component<ViewProps> {
+    public shouldComponentUpdate(nextProps: ViewProps): boolean {
+        return this.props.model !== nextProps.model;
+    }
+
     private readonly onStopMultiple = () => {
         if (this.props.model.multiple.isJust()) {
             this.props.dispatch(StopMultiple);
