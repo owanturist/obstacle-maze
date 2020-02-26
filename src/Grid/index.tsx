@@ -647,11 +647,11 @@ const TOOLS: Array<EditTool> = [
         image: emptyImage,
         mode: ClearCell
     }, {
-        title: `Set starting location (${hotKeyToString(HotKey.PortalIn)})`,
+        title: `Set starting location (${hotKeyToString(HotKey.Start)})`,
         image: startingLocationImage,
         mode: SetStart
     }, {
-        title: `Set targeting location (${hotKeyToString(HotKey.PortalOut)})`,
+        title: `Set targeting location (${hotKeyToString(HotKey.Target)})`,
         image: targetingLocationImage,
         mode: SetTarget
     }
