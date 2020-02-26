@@ -45,7 +45,7 @@ class FileImpl implements Saver {
         return Task.binding(done => {
             const blob = new Blob([ this.body.getContent() ], { type: this.body.getType() });
 
-            saveAs(blob, this.name);
+            saveAs(blob, this.name + '.' + this.body.getExtention());
             done(Task.succeed(null));
         });
     }
