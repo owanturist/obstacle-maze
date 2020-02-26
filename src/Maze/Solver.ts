@@ -45,9 +45,9 @@ export type Solution = Readonly<{
  * any other condition.
  */
 class Way implements Comparable<Way> {
-    private static PORTAL_WEIGHT = 0;
-    private static GROUND_WEIGHT = 1;
-    private static GRAVEL_WEIGHT = 2;
+    private static readonly PORTAL_WEIGHT = 0;
+    private static readonly GROUND_WEIGHT = 1;
+    private static readonly GRAVEL_WEIGHT = 2;
 
     public static start(startLocation: [ number, number ]): Way {
         return new Way(0, 0, 0, 0, 0, singleton(startLocation));

@@ -242,10 +242,10 @@ export const Redo = Utils.inst(class Redo implements Msg {
 });
 
 export const Solve = Utils.inst(class Solve implements Msg {
-    private static SuccessToast: React.FC<Solver.Solution> = ({ length, weight, portals, gravels, grounds }) => (
+    private static readonly SuccessToast: React.FC<Solver.Solution> = ({ length, weight, portals, gravels, grounds }) => (
         <>
             Path {length} {Utils.plural('cell', length)} length found.<br />
-            It takes {weight} time {Utils.plural('unit', weight)} to reach a destination.<br />
+            It takes {weight} time {Utils.plural('unit', weight)} to reach the destination.<br />
             There are {portals} {Utils.plural('portal', portals)}, {gravels} {Utils.plural('gravel', gravels)} and {grounds} clean {Utils.plural('cell', grounds)} on a way.
         </>
     )

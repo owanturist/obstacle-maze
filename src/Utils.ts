@@ -10,4 +10,4 @@ export const cons = <A extends Array<unknown>, T>(
 
 export const plural = (word: string, count: number): string => {
     return count === 1 ? word : word + 's';
-}
+};
