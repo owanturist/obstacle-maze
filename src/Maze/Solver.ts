@@ -135,7 +135,7 @@ class Way implements Comparable<Way> {
     public branchPortal(row: number, col: number): Way {
         return new Way(
             this.turns + 1, // treat portals as turns to reduce priority
-            this.grounds,
+            this.grounds - 1,
             this.gravels,
             this.portals + 1,
             this.weight + Way.PORTAL_WEIGHT,
@@ -153,7 +153,7 @@ class Way implements Comparable<Way> {
         return {
             gravels: this.gravels,
             portals: this.portals,
-            grounds: this.grounds ,
+            grounds: this.grounds,
             weight: this.weight,
             // does not count starting and portals
             length: path.length - 1 - this.portals,
@@ -253,7 +253,7 @@ class BFS {
 
             case Obstacle.PortalIn: {
                 // PortalIn might be treated like empty cell
-                this.pq.enqueue(way.branchGravel(row, col));
+                this.pq.enqueue(way.branchGround(row, col));
 
                 // Schedule all PortalOuts
                 for (const [ portalRow, portalCol ] of this.portalsOut) {
