@@ -1,8 +1,10 @@
 import React, { ButtonHTMLAttributes } from 'react';
 import styled, { css } from 'styled-components';
 import { Dispatch } from 'Provider';
-import { Cmd } from 'frctl';
+import { Cmd, Sub } from 'frctl';
+import { onKeyPress } from 'frctl/Browser/Events';
 import Set from 'frctl/Set';
+import Decode from 'frctl/Json/Decode';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
 
 import {
@@ -288,6 +290,95 @@ export const SaveAsFile = Utils.inst(class SaveAsFile implements Msg {
     }
 });
 
+// S U B S C R I P T I O N S
+
+export enum HotKey
+    { Wall = 'w'.charCodeAt(0)
+    , Gravel = 'g'.charCodeAt(0)
+    , PortalIn = 'i'.charCodeAt(0)
+    , PortalOut = 'o'.charCodeAt(0)
+    , Start = 's'.charCodeAt(0)
+    , Target = 'x'.charCodeAt(0)
+    , ClearCell = 'e'.charCodeAt(0)
+    , ClearAll = 'r'.charCodeAt(0)
+    , Undo = 'z'.charCodeAt(0)
+    , Redo = 'Z'.charCodeAt(0)
+    , Save = 'd'.charCodeAt(0)
+    , Solve = 'f'.charCodeAt(0)
+    }
+
+const keyCodeToMsg = (model: Model, keyCode: number): Maybe<Msg> => {
+    switch (keyCode) {
+        case HotKey.Wall: {
+            return model.mode.isAddObstacle(Maze.Obstacle.Wall)
+                ? Nothing
+                : Just(SetMode(AddObstacle(Maze.Obstacle.Wall)));
+        }
+
+        case HotKey.Gravel: {
+            return model.mode.isAddObstacle(Maze.Obstacle.Gravel)
+                ? Nothing
+                : Just(SetMode(AddObstacle(Maze.Obstacle.Gravel)));
+        }
+
+        case HotKey.PortalIn: {
+            return model.mode.isAddObstacle(Maze.Obstacle.PortalIn)
+                ? Nothing
+                : Just(SetMode(AddObstacle(Maze.Obstacle.PortalIn)));
+        }
+
+        case HotKey.PortalOut: {
+            return model.mode.isAddObstacle(Maze.Obstacle.PortalOut)
+                ? Nothing
+                : Just(SetMode(AddObstacle(Maze.Obstacle.PortalOut)));
+        }
+
+        case HotKey.Start: {
+            return model.mode.isSetStart() ? Nothing : Just(SetMode(SetStart));
+        }
+
+        case HotKey.Target: {
+            return model.mode.isSetTarget() ? Nothing : Just(SetMode(SetTarget));
+        }
+
+        case HotKey.ClearCell: {
+            return model.mode.isClearCell() ? Nothing : Just(SetMode(ClearCell));
+        }
+
+        case HotKey.ClearAll: {
+            return model.history.getCurrent().isEmpty() ? Nothing : Just(ClearMaze);
+        }
+
+        case HotKey.Undo: {
+            return !model.history.isUndoable() ? Nothing : Just(Undo);
+        }
+
+        case HotKey.Redo: {
+            return !model.history.isRedoable() ? Nothing : Just(Redo);
+        }
+
+        case HotKey.Save: {
+            return Just(SaveAsFile);
+        }
+
+        case HotKey.Solve: {
+            return Just(Solve);
+        }
+
+        default: {
+            return Nothing;
+        }
+    }
+};
+
+export const subscriptions = (model: Model): Sub<Msg> => {
+    return onKeyPress(
+        Decode.field('keyCode').int
+            .map(keyCode => keyCodeToMsg(model, keyCode))
+            .chain(maybeMsg => Decode.fromMaybe('Unhandled', maybeMsg))
+    );
+};
+
 // V I E W
 
 interface StyledCellProps {
@@ -532,33 +623,35 @@ class ViewEditTool extends React.PureComponent<{
     }
 }
 
+const hotKeyToString = (hotKey: HotKey): string => String.fromCharCode(hotKey).toUpperCase();
+
 const TOOLS: Array<EditTool> = [
     {
-        title: 'Add wall',
+        title: `Add wall (${hotKeyToString(HotKey.Wall)})`,
         image: wallImage,
         mode: AddObstacle(Maze.Obstacle.Wall)
     }, {
-        title: 'Add gravel',
+        title: `Add gravel (${hotKeyToString(HotKey.Gravel)})`,
         image: gravelImage,
         mode: AddObstacle(Maze.Obstacle.Gravel)
     }, {
-        title: 'Add portal in',
+        title: `Add portal in (${hotKeyToString(HotKey.PortalIn)})`,
         image: portalInImage,
         mode: AddObstacle(Maze.Obstacle.PortalIn)
     }, {
-        title: 'Add portal out',
+        title: `Add portal out (${hotKeyToString(HotKey.PortalOut)})`,
         image: portalOutImage,
         mode: AddObstacle(Maze.Obstacle.PortalOut)
     }, {
-        title: 'Clear cell',
+        title: `Clear cell (${hotKeyToString(HotKey.ClearCell)})`,
         image: emptyImage,
         mode: ClearCell
     }, {
-        title: 'Set starting location',
+        title: `Set starting location (${hotKeyToString(HotKey.PortalIn)})`,
         image: startingLocationImage,
         mode: SetStart
     }, {
-        title: 'Set targeting location',
+        title: `Set targeting location (${hotKeyToString(HotKey.PortalOut)})`,
         image: targetingLocationImage,
         mode: SetTarget
     }
@@ -590,29 +683,35 @@ const ViewToolbar: React.FC<{
         <StyledToolGroup>
             <ViewTool
                 disabled={model.history.getCurrent().isEmpty()}
-                title="Start over"
+                title={`Start over (${hotKeyToString(HotKey.ClearAll)})`}
                 image={startOverImage}
                 onClick={() => dispatch(ClearMaze)}
             />
 
             <ViewTool
-                title="Save as file"
+                title={`Save as file (${hotKeyToString(HotKey.Save)})`}
                 image={saveImage}
                 onClick={() => dispatch(SaveAsFile)}
             />
 
             <ViewTool
                 disabled={!model.history.isUndoable()}
-                title="Undo"
+                title={`Undo (${hotKeyToString(HotKey.Undo)})`}
                 image={undoImage}
                 onClick={() => dispatch(Undo)}
             />
 
             <ViewTool
-                disabled={!model.history.isReadoable()}
-                title="Redo"
+                disabled={!model.history.isRedoable()}
+                title={`Redo (Shift + ${hotKeyToString(HotKey.Undo)})`}
                 image={redoImage}
                 onClick={() => dispatch(Redo)}
+            />
+
+            <ViewTool
+                title={`Find path (${hotKeyToString(HotKey.Solve)})`}
+                image={findPathImage}
+                onClick={() => dispatch(Solve)}
             />
         </StyledToolGroup>
 
@@ -625,14 +724,6 @@ const ViewToolbar: React.FC<{
                     dispatch={dispatch}
                 />
             ))}
-        </StyledToolGroup>
-
-        <StyledToolGroup>
-            <ViewTool
-                title="Find path"
-                image={findPathImage}
-                onClick={() => dispatch(Solve)}
-            />
         </StyledToolGroup>
     </StyledToolbar>
 );

@@ -6,7 +6,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Cmd, Sub } from 'frctl';
 import Dict from 'frctl/Dict';
-import * as BrowserEvents from 'frctl/Browser/Events';
+import { onKeyPress } from 'frctl/Browser/Events';
 import Maybe, { Nothing, Just } from 'frctl/Maybe';
 import Decode from 'frctl/Json/Decode';
 import { Dispatch } from 'Provider';
@@ -17,36 +17,34 @@ import * as Utils from 'Utils';
 
 // M O D E L
 
+enum AppID { Main, First, Second, Third }
+
 export type Model = Readonly<{
+    activeApp: AppID;
     notFunFor: Maybe<number>;
-    apps: Dict<number, App.Model>;
+    apps: Dict<AppID, App.Model>;
 }>;
 
 export const initial: Model = {
+    activeApp: AppID.Main,
     notFunFor: Just(4),
-    apps: Dict.empty as Dict<number, App.Model>
+    apps: Dict.empty as Dict<AppID, App.Model>
 };
 
 // U P D A T E
 
 export interface Msg extends Utils.Msg<[ Model ], [ Model, Cmd<Msg> ]> {}
 
-const AppMsg = Utils.cons(class AppMsg$ implements Msg {
-    public constructor(
-        private readonly id: number,
-        private readonly msg: App.Msg
-    ) {}
+const SetActiveApp = Utils.cons(class SetActiveApp implements Msg {
+    public constructor(private readonly id: AppID) {}
 
     public update(model: Model): [ Model, Cmd<Msg> ] {
-        const appModel = model.apps.get(this.id).getOrElse(App.initial);
-        const [ nextAppModel, cmdOfApp ] = this.msg.update(appModel);
-
         return [
             {
                 ...model,
-                apps: model.apps.insert(this.id, nextAppModel)
+                activeApp: this.id
             },
-            cmdOfApp.map(msg => AppMsg(this.id, msg))
+            Cmd.none
         ];
     }
 });
@@ -73,14 +71,31 @@ const FunKeyPress = Utils.inst(class FunKeyPress implements Msg {
     }
 });
 
+const AppMsg = Utils.cons(class AppMsg$ implements Msg {
+    public constructor(
+        private readonly id: AppID,
+        private readonly msg: App.Msg
+    ) {}
+
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        const appModel = model.apps.get(this.id).getOrElse(App.initial);
+        const [ nextAppModel, cmdOfApp ] = this.msg.update(appModel);
+
+        return [
+            {
+                ...model,
+                activeApp: this.id,
+                apps: model.apps.insert(this.id, nextAppModel)
+            },
+            cmdOfApp.map(msg => AppMsg(this.id, msg))
+        ];
+    }
+});
+
 // S U B S C R I P T I O N S
 
-export const subscriptions = (model: Model): Sub<Msg> => {
-    if (model.notFunFor.isNothing()) {
-        return Sub.none;
-    }
-
-    return BrowserEvents.onKeyPress(
+export const subscriptions = (model: Model): Sub<Msg> => Sub.batch([
+    model.notFunFor.isNothing() ? Sub.none : onKeyPress(
         Decode.field('key').string.chain(key => {
             if (key === '4') {
                 return Decode.succeed(FunKeyPress);
@@ -88,8 +103,12 @@ export const subscriptions = (model: Model): Sub<Msg> => {
 
             return Decode.fail('Not funny key');
         })
-    );
-};
+    ),
+
+    App.subscriptions(
+        model.apps.get(model.activeApp).getOrElse(App.initial)
+    ).map(msg => AppMsg(model.activeApp, msg))
+]);
 
 // V I E W
 
@@ -118,16 +137,19 @@ export class View extends React.PureComponent<{
         if (model.notFunFor.isJust()) {
             return (
                 <App.View
-                    model={model.apps.get(0).getOrElse(App.initial)}
-                    dispatch={msg => dispatch(AppMsg(0, msg))}
+                    model={model.apps.get(AppID.Main).getOrElse(App.initial)}
+                    dispatch={msg => dispatch(AppMsg(AppID.Main, msg))}
                 />
             );
         }
 
         return (
             <StyledRoot>
-                {[ 0, 1, 2, 3 ].map(id => (
-                    <StyledApp key={id}>
+                {[ AppID.Main, AppID.First, AppID.Second, AppID.Third ].map((id: AppID) => (
+                    <StyledApp
+                        key={id}
+                        onMouseEnter={() => dispatch(SetActiveApp(id))}
+                    >
                         <App.View
                             model={model.apps.get(id).getOrElse(App.initial)}
                             dispatch={msg => dispatch(AppMsg(id, msg))}

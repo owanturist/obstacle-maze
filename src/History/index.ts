@@ -7,7 +7,7 @@ import {
 
 export interface History<T> {
     isUndoable(): boolean;
-    isReadoable(): boolean;
+    isRedoable(): boolean;
     getCurrent(): T;
 
     push(step: T): History<T>;
@@ -27,7 +27,7 @@ class HistoryImpl<T> implements History<T> {
         return !this.done.isEmpty();
     }
 
-    public isReadoable(): boolean {
+    public isRedoable(): boolean {
         return !this.undone.isEmpty();
     }
 

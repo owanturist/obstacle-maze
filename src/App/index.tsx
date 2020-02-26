@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Dispatch } from 'Provider';
-import { Cmd } from 'frctl';
+import { Cmd, Sub } from 'frctl';
 import { Cata } from 'frctl/Basics';
 
 import * as Configurator from 'Configurator';
@@ -93,6 +93,16 @@ export const GridMsg = Utils.cons(class GridMsg$ implements Msg {
         });
     }
 });
+
+// S U B S C R I P T I O N S
+
+export const subscriptions = (model: Model): Sub<Msg> => {
+    return model.screen.cata({
+        GridScreen: grid => Grid.subscriptions(grid).map(GridMsg),
+
+        _: () => Sub.none
+    });
+};
 
 // V I E W
 
