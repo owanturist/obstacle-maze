@@ -4,7 +4,7 @@ import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { ToastContainer } from 'react-toastify';
-import { Cmd, Sub } from 'frctl';
+import { Cmd } from 'frctl';
 import Provider from 'Provider';
 // import * as App from 'App';
 import * as App from 'App/Fun';
@@ -17,7 +17,7 @@ ReactDOM.render(
         <Provider
             init={[ App.initial, Cmd.none ]}
             update={(msg: App.Msg, model: App.Model) => msg.update(model)}
-            subscription={() => Sub.none}
+            subscription={App.subscriptions}
             view={App.View}
         />
     </>

@@ -1,7 +1,13 @@
+/**
+ * The module made to show how that's easy to reuse components implemented with frctl.
+ */
+
 import React from 'react';
 import styled from 'styled-components';
-import { Cmd } from 'frctl';
+import { Cmd, Sub } from 'frctl';
 import Dict from 'frctl/Dict';
+import * as BrowserEvents from 'frctl/Browser/Events';
+import Decode from 'frctl/Json/Decode';
 import { Dispatch } from 'Provider';
 
 import * as App from './index';
@@ -40,6 +46,20 @@ const AppMsg = Utils.cons(class AppMsg$ implements Msg {
         ];
     }
 });
+
+const KeyPress = Utils.cons(class KeyPress implements Msg {
+    public constructor(protected readonly key: string) {}
+
+    public update(model: Model): [ Model, Cmd<Msg> ] {
+        return [ model, Cmd.none ];
+    }
+});
+
+// S U B S C R I P T I O N S
+
+export const subscriptions = (_model: Model): Sub<Msg> => {
+    return BrowserEvents.onKeyPress(Decode.field('key').string.map(KeyPress));
+}
 
 // V I E W
 
