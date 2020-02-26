@@ -323,6 +323,24 @@ describe('Grid.Solve', () => {
             solution: Maybe.Just(Set.fromList([ 0, 1, 2 ]))
         });
     });
+
+    it('Uses maze from multiple', () => {
+        const maze = Maze.empty(2, 3)
+            .setStart(0)
+            .setTarget(2);
+
+        const [ _1 ] = Grid.Solve.update({
+            ...Grid.init(maze),
+            multiple: Maybe.Just(Maze.empty(2, 3)),
+            solution: Maybe.Just(Set.singleton(10))
+        });
+        expect(_1).toEqual({
+            mode: Grid.AddObstacle(Maze.Obstacle.Wall),
+            multiple: Maybe.Just(Maze.empty(2, 3)),
+            history: History.init(maze),
+            solution: Maybe.Nothing
+        });
+    });
 });
 
 it('Grid.SaveAsFile', () => {
