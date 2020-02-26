@@ -20,10 +20,6 @@ class ToastImpl implements Toast {
         private readonly content: ToastContent
     ) {}
 
-    public autoClose(): Toast {
-        return new ToastImpl(this.type, this.content);
-    }
-
     public show(): Cmd<never> {
         return Task.binding(() => {
             toast(this.content, {

@@ -242,9 +242,20 @@ export const Redo = Utils.inst(class Redo implements Msg {
 });
 
 export const Solve = Utils.inst(class Solve implements Msg {
+    private static SuccessToast: React.FC<Solver.Solution> = ({ length, weight, portals, gravels, grounds }) => (
+        <>
+            Path {length} {Utils.plural('cell', length)} length found.<br />
+            It takes {weight} time {Utils.plural('unit', weight)} to reach a destination.<br />
+            There are {portals} {Utils.plural('portal', portals)}, {gravels} {Utils.plural('gravel', gravels)} and {grounds} clean {Utils.plural('cell', grounds)} on a way.
+        </>
+    )
+
+    private static mapPath(cols: number, path: Array<[ number, number ]>): Set<Maze.ID> {
+        return Set.fromList(path.map(([ row, col ]) => row * cols + col));
+    }
+
     public update(model: Model): [ Model, Cmd<Msg> ] {
         const maze = model.multiple.getOrElse(model.history.getCurrent());
-        const cols = maze.cols();
 
         return maze.setup().cata({
             Nothing: () => [
@@ -261,15 +272,17 @@ export const Solve = Utils.inst(class Solve implements Msg {
                         ...model,
                         solution: Nothing
                     },
-                    Toast.info('There is not path between starting and targeting locations').show()
+                    Toast.info('There is no path between starting and targeting locations').show()
                 ],
 
-                Just: path => [
+                Just: solution => [
                     {
                         ...model,
-                        solution: Set.fromList(path.map(([ row, col ]) => row * cols + col)).tap(Just)
+                        solution: Just(Solve.mapPath(maze.cols(), solution.path))
                     },
-                    Cmd.none
+                    Toast.success(
+                        <Solve.SuccessToast {...solution} />
+                    ).show()
                 ]
             })
         });

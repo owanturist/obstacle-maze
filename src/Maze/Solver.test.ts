@@ -3,7 +3,7 @@ import Either from 'frctl/Either';
 import * as Maze from './index';
 import * as Solver from './Solver';
 
-const solve = (schema: string): Either<string, Solver.Path> => {
+const solve = (schema: string): Either<string, Solver.Solution> => {
     return Maze.deserialize(schema.trim())
         .chain(maze => maze.setup().toEither('Setup is invalid'))
         .chain(setup => Solver.solve(setup).toEither('No path'));

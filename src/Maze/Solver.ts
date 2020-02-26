@@ -18,12 +18,18 @@ import {
 } from '../PriorityQueue';
 
 
-const NORAML_DURATION = 1;
-const GRAVEL_DURATION = NORAML_DURATION * 2;
-const TELEPORT_DURATION = 0;
-
-export type Path = Array<[ number, number ]>;
-
+/**
+ * Represent a path details with path itself.
+ * *Note:* length does not count starting and portal outs locations.
+ */
+export type Solution = Readonly<{
+    grounds: number;
+    gravels: number;
+    portals: number;
+    weight: number;
+    length: number;
+    path: Array<[ number, number ]>;
+}>;
 
 /**
  * ImmutableWay representation.
@@ -39,22 +45,29 @@ export type Path = Array<[ number, number ]>;
  * any other condition.
  */
 class Way implements Comparable<Way> {
+    private static PORTAL_WEIGHT = 0;
+    private static GROUND_WEIGHT = 1;
+    private static GRAVEL_WEIGHT = 2;
+
     public static start(startLocation: [ number, number ]): Way {
-        return new Way(0, 0, singleton(startLocation));
+        return new Way(0, 0, 0, 0, 0, singleton(startLocation));
     }
 
     private constructor(
         private readonly turns: number,
-        private readonly time: number,
+        private readonly grounds: number,
+        private readonly gravels: number,
+        private readonly portals: number,
+        private readonly weight: number,
         private readonly path: NonEmptyStack<[ number, number ]>
     ) {}
 
     public compareTo(another: Way): Order {
-        if (this.time < another.time) {
+        if (this.weight < another.weight) {
             return Order.LT;
         }
 
-        if (this.time > another.time) {
+        if (this.weight > another.weight) {
             return Order.GT;
         }
 
@@ -77,30 +90,75 @@ class Way implements Comparable<Way> {
         return this.path.peek();
     }
 
-    /**
-     * Make a brunch of the way.
-     * Takes constant time.
-     */
-    public branch(duration: number, row: number, col: number): Way {
-        const inRow = this.path.pop().map(([ , prev ]) => {
+    private inRow(row: number, col: number): boolean {
+        return this.path.pop().map(([ , prev ]) => {
             const [ prevRow, prevCol ] = prev.peek();
 
             return (prevRow === row || prevCol === col);
         }).getOrElse(true);
+    }
 
+    /**
+     * Branch a ground from the way.
+     * Takes constant time.
+     */
+    public branchGround(row: number, col: number): Way {
         return new Way(
-            inRow ? this.turns : this.turns + 1,
-            this.time + duration,
+            this.inRow(row, col) ? this.turns : this.turns + 1,
+            this.grounds + 1,
+            this.gravels,
+            this.portals,
+            this.weight + Way.GROUND_WEIGHT,
             this.path.push([ row, col ])
         );
     }
 
     /**
-     * Get full path of the way.
+     * Branch a gravel from the way.
+     * Takes constant time.
+     */
+    public branchGravel(row: number, col: number): Way {
+        return new Way(
+            this.inRow(row, col) ? this.turns : this.turns + 1,
+            this.grounds,
+            this.gravels + 1,
+            this.portals,
+            this.weight + Way.GRAVEL_WEIGHT,
+            this.path.push([ row, col ])
+        );
+    }
+
+    /**
+     * Branch a portal from the way.
+     * Takes constant time.
+     */
+    public branchPortal(row: number, col: number): Way {
+        return new Way(
+            this.turns + 1, // treat portals as turns to reduce priority
+            this.grounds,
+            this.gravels,
+            this.portals + 1,
+            this.weight + Way.PORTAL_WEIGHT,
+            this.path.push([ row, col ])
+        );
+    }
+
+    /**
+     * Converts the way to solution.
      * Takes time proportional to `O(n)`.
      */
-    public getPath(): Path {
-        return this.path.toArray();
+    public toSolution(): Solution {
+        const path = this.path.toArray();
+
+        return {
+            gravels: this.gravels,
+            portals: this.portals,
+            grounds: this.grounds ,
+            weight: this.weight,
+            // does not count starting and portals
+            length: path.length - 1 - this.portals,
+            path
+        };
     }
 }
 
@@ -186,20 +244,20 @@ class BFS {
             case null:
             case undefined:            // Represents just a cell empty of obstacles
             case Obstacle.PortalOut: { // PortalOut might be treated like empty cell
-                return this.pq.enqueue(way.branch(NORAML_DURATION, row, col));
+                return this.pq.enqueue(way.branchGround(row, col));
             }
 
             case Obstacle.Gravel: {
-                return this.pq.enqueue(way.branch(GRAVEL_DURATION, row, col));
+                return this.pq.enqueue(way.branchGravel(row, col));
             }
 
             case Obstacle.PortalIn: {
                 // PortalIn might be treated like empty cell
-                this.pq.enqueue(way.branch(NORAML_DURATION, row, col));
+                this.pq.enqueue(way.branchGravel(row, col));
 
                 // Schedule all PortalOuts
                 for (const [ portalRow, portalCol ] of this.portalsOut) {
-                    this.schedule(way.branch(TELEPORT_DURATION, row, col), portalRow, portalCol);
+                    this.schedule(way.branchPortal(row, col), portalRow, portalCol);
                 }
             }
         }
@@ -223,7 +281,7 @@ class BFS {
      * In case there is no path returns `Nothing`.
      * Takes time proportional to `O(n*log n)`.
      */
-    public findShortestPaths(): Maybe<Path> {
+    public findShortestPaths(): Maybe<Solution> {
         this.lookup(Way.start(this.start));
 
         while (!this.pq.isEmpty()) {
@@ -235,7 +293,7 @@ class BFS {
             }
 
             if (this.isTarget(row, col)) {
-                return Just(way.getPath());
+                return Just(way.toSolution());
             }
 
             this.visit(row, col);
@@ -249,7 +307,7 @@ class BFS {
 /**
  * We trust the Maze flow so `setup` is valid.
  */
-export const solve = (setup: Setup): Maybe<Path> => {
+export const solve = (setup: Setup): Maybe<Solution> => {
     const bfs = new BFS(setup.start, setup.target, setup.obstacles);
 
     return bfs.findShortestPaths();
