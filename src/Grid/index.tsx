@@ -243,7 +243,7 @@ export const Redo = Utils.inst(class Redo implements Msg {
 
 export const Solve = Utils.inst(class Solve implements Msg {
     public update(model: Model): [ Model, Cmd<Msg> ] {
-        const maze = model.history.getCurrent();
+        const maze = model.multiple.getOrElse(model.history.getCurrent());
         const cols = maze.cols();
 
         return maze.setup().cata({
