@@ -36,6 +36,7 @@ Launches the test runner in the interactive watch mode.<br />
 * Save / Load from file
 * Custom size of a maze
 * Solver is looking for the most "straight" shortest path (with less turns)
+* Hotkeys
 * Press "4" key 4 times
 * Uniq handmade icons design
 
