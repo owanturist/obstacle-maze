@@ -1,5 +1,6 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Obstacle Maze | [Demo](http://bit.ly/obstacle-maze)
 
+*This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).*
 
 ## Available Scripts
 
