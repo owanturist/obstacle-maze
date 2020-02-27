@@ -160,7 +160,7 @@ export interface Action {
     update(state: State): State;
 }
 
-class Decrement implements Action {
+class Increment implements Action {
     constructor(private amount: number) {}
 
     public update(state: State): State {
